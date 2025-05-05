@@ -2,13 +2,13 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 
 const firebaseConfig = {
-    apiKey: "AIzaSyDIhOyR0bWPF-YbzJ4WqHeuNB6kLAgJH-M",
-    authDomain: "pokemontcgptrading-e347b.firebaseapp.com",
-    projectId: "pokemontcgptrading-e347b",
-    storageBucket: "pokemontcgptrading-e347b.firebasestorage.app",
-    messagingSenderId: "230422548433",
-    appId: "1:230422548433:web:b5d1583f5450b898ed5af0",
-    measurementId: "G-YF0CK1SELY"
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID,
+    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
   };
 
 const app = initializeApp(firebaseConfig);
