@@ -1,16 +1,41 @@
 import landingLogo from '../../assets/landing-logo.jpg';
 import google from '../../assets/Google_"G"_logo.svg.png'
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { signInWithPopup } from 'firebase/auth';
+import { auth, googleProvider } from '../../firebase';
 
 
 function Landing() {
+    const navigate = useNavigate();
+
+    const handleGoogleSignIn = async () => {
+        try {
+            const result = await signInWithPopup(auth, googleProvider);
+            // Handle successful sign in
+            console.log('Successfully signed in with Google:', result.user);
+            // You can redirect or update state here
+        } catch (error) {
+            console.error('Error signing in with Google:', error);
+        }
+    };
+
+    const handleGoogleSignUp = async () => {
+        try {
+            await signInWithPopup(auth, googleProvider);
+            navigate('/main');
+        } catch (error) {
+            console.error('Error with Google sign-up', error);
+        }
+    }
+
     return (
         <div className="min-h-screen flex flex-col md:flex-row items-center justify-center gap-20 p-4">
             <div className="w-full max-w-lg mx-5 flex flex-col justify-center p-8 border border-black rounded-lg">
                 <h1 className="text-4xl font-bold pb-5">Sign In</h1>
                 <div className='flex justify-start'>
                     <p className='text-gray-400 pr-2'>Don't have an account?</p>
-                    <Link className="text-blue-500 hover:text-blue-700">Create now</Link>
+                    <button className="text-blue-500 hover:text-blue-700"
+                    onClick={handleGoogleSignUp}>Create now</button>
                 </div>
                 <div className='py-3'>
                     <label className='block text-gray-600 text-sm'>Email</label>
@@ -24,7 +49,7 @@ function Landing() {
                     <input type="password"
                     id='password'
                     className='w-full bg-gray-50 border border-gray rounded-lg text-sm p-2 mt-2'
-                    placeholder='Enter your password' />
+                    placeholder='enter your password' />
                 </div>
                 <div className="pb-3 flex flex-row justify-between items-center">
                     <span>
@@ -41,7 +66,10 @@ function Landing() {
                     <span className="flex-shrink mx-4 text-gray-500 text-xs">OR</span>
                     <div className="flex-grow border-t border-gray-300"></div>
                 </div>
-                <button className='flex flex-row items-centerd justify-center space-x-4 text-black p-2 border border-gray rounded-xl my-3 hover:bg-gray-100'>
+                <button 
+                    onClick={handleGoogleSignIn}
+                    className='flex flex-row items-center justify-center space-x-4 text-black p-2 border border-gray rounded-xl my-3 hover:bg-gray-100'
+                >
                     <img className="w-5 h-5" src={google} alt="Google logo" />
                     <span>Continue with Google</span>
                 </button>
