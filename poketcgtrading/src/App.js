@@ -1,12 +1,12 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+// import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Landing from './pages/sign-in/landing';
 // import Inventory from './pages/inventory/inventory'
 // import Signup from './pages/sign-in/signup';
 import Navbar from './components/navbar';
 import Explore from './pages/explore/explore';
-
+import Footer from './Footer'
 /**
 * This function allows one component to be rendered 
 * and mounted once. When navigating to other pages,
@@ -38,6 +38,7 @@ function App() {
   return (
     <Router>
       <AppLayout />
+      <Footer />
     </Router>
   );
 }

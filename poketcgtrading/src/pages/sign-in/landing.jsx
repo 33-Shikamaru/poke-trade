@@ -3,10 +3,12 @@ import google from '../../assets/Google_"G"_logo.svg.png'
 import { Link, useNavigate } from 'react-router-dom';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '../../firebase';
+import { useState, useEffect } from "react"
 
 
 function Landing() {
     const navigate = useNavigate();
+    const [error, setError] = useState('');
 
     const handleGoogleSignIn = async () => {
         try {
@@ -20,8 +22,22 @@ function Landing() {
     };
 
     const handleGoogleSignUp = async () => {
+        // try {
+        //     // Check if the user already exist in the system
+        //     const userRef = collecition(firestoreDb, "users");
+        //     const q = query(userRef, where("email", "==", user.email))
+        //     const userSnapshot = await getDocs(q);
+
+        //     if (!userSnapshot.empty) {
+        //         setError("User already exists in the system.");
+        //         return;
+        //     }
+        // }
         try {
             await signInWithPopup(auth, googleProvider);
+            // Create new user to the database
+            // const user = doc(collection(firestoreDb, "users"));
+
             navigate('/main');
         } catch (error) {
             console.error('Error with Google sign-up', error);
@@ -60,7 +76,8 @@ function Landing() {
                     </span>
                     <Link to="/signup" className="text-sm text-blue-500 hover:text-blue-700">Forgot Password?</Link>
                 </div>
-                <button className='w-full bg-black text-white p-2 border rounded-lg my-3'>Sign in</button>
+                <button className='w-full bg-black text-white p-2 border rounded-lg my-3'
+                onClick={()=>navigate('/explore')}>Sign in</button>
                 <div className="relative flex items-center my-5">
                     <div className="flex-grow border-t border-gray-300"></div>
                     <span className="flex-shrink mx-4 text-gray-500 text-xs">OR</span>
