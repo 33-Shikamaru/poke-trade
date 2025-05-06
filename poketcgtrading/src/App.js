@@ -37,17 +37,16 @@ function AppLayout() {
 
 
 function App() {
- return (
-   <Router>
-     <div className="App">
-       <AppLayout />
-       <Footer />
-     </div>
-     <AppLayout />
-     <Footer />
-   </Router>
- );
+  return (
+    <Router>
+      <div className="App">
+        <AppLayout />
+        <Footer />
+      </div>
+    </Router>
+  );
 }
+
 
 
 export default App;
