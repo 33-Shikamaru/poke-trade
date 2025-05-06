@@ -1,3 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+/* Add these styles for the main App layout */
+.App {
+   display: flex;
+   flex-direction: column;
+   min-height: 100vh; /* Make sure the container fills the viewport height */
+ }
+  /* Optional: If using <main className="flex-grow"> */
+ main {
+    flex-grow: 1; /* Allows main content to expand */
+ }

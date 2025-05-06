@@ -6,9 +6,9 @@ import Landing from './pages/sign-in/landing';
 // import Signup from './pages/sign-in/signup';
 import Navbar from './components/navbar';
 import Explore from './pages/explore/explore';
-import Footer from './Footer'
+import Footer from './components/Footer';
 /**
-* This function allows one component to be rendered 
+* This function allows one component to be rendered
 * and mounted once. When navigating to other pages,
 * the components (such as Navbar) will not refresh
 * and the visual "refresh" will not be shown.
@@ -17,30 +17,37 @@ import Footer from './Footer'
 * This funciton returns the page structure of the application.
 */
 function AppLayout() {
-  // Retrieves object details such as pathname, state, key.
-  const location = useLocation();
-  // A Boolean value that checks what page we are on
-  const hideNavbar = location.pathname === '/';
+ // Retrieves object details such as pathname, state, key.
+ const location = useLocation();
+ // A Boolean value that checks what page we are on
+ const hideNavbar = location.pathname === '/';
 
-  return (
-    <>
-      {!hideNavbar && <Navbar />}
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/explore" element={<Explore />} />
-        {/* <Route path="/inventory" element={<Inventory />} /> */}
-      </Routes>
-    </>
-  );
+
+ return (
+   <>
+     {!hideNavbar && <Navbar />}
+     <Routes>
+       <Route path="/" element={<Landing />} />
+       <Route path="/explore" element={<Explore />} />
+       {/* <Route path="/inventory" element={<Inventory />} /> */}
+     </Routes>
+   </>
+ );
 }
+
 
 function App() {
-  return (
-    <Router>
-      <AppLayout />
-      <Footer />
-    </Router>
-  );
+ return (
+   <Router>
+     <div className="App">
+       <AppLayout />
+       <Footer />
+     </div>
+     <AppLayout />
+     <Footer />
+   </Router>
+ );
 }
 
-export default App; 
+
+export default App;
