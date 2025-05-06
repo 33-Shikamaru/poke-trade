@@ -16,8 +16,8 @@ const Navbar = () => {
   // This reduces the repetitive tailwindcss styling for each link
   const navClass = (path) => {
     return isActive(path)
-          ? 'rounded p-1 hover:bg-gray-200 text-blue-400'
-          : 'rounded p-1 hover:bg-gray-200';
+          ? 'flex items-center justify-center rounded p-1 hover:bg-gray-200 text-blue-400'
+          : 'flex items-center justify-center rounded p-1 hover:bg-gray-200';
   }
   const [isOpen, setIsOpen] = useState(false);
   
@@ -55,18 +55,23 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Dropdown Menu */}
-      {isOpen && (
-        <div className='absolute top-full left-0 w-full flex flex-col items-center bg-gray-200 py-4 space-y-3 border-t border-gray-200 md:hidden z-10'>
+      
+      <div
+        className={`absolute top-full left-0 w-full flex flex-col items-center bg-gray-200 py-4 space-y-3 border-t border-gray-200 md:hidden z-10 transform transition-transform duration-300 ease-in-out origin-top ${
+          isOpen ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0 pointer-events-none'
+        }`}
+      >
           <Link to='/explore' className={navClass('/explore')}>Explore</Link>
           <Link to='/inventory' className={navClass('/inventory')}>Inventory</Link>
           <Link to='/wishlist' className={navClass('/wishlist')}>Wish List</Link>
           <Link to='/friends' className={navClass('/friends')}>Friends</Link>
           <Link to='/trade' className={navClass('/trade')}>Trade</Link>
+          <hr className="border-t border-gray-400 w-1/4" />
           <Link to='/alerts' className={navClass('/alerts')}>Alerts</Link>
           <Link to='/profile' className={navClass('/profile')}>Profile</Link>
           <button onClick={handleSignOut} className='flex justify-content align-items text-center rounded-xl bg-black text-white p-1 px-3 hover:bg-gray-500 text-sm'>Sign Out</button>
         </div>
-      )}
+
     </nav>
 )};
 
