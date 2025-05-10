@@ -2,12 +2,16 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 // import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Landing from './pages/landing/landing';
-// import Inventory from './pages/inventory/inventory'
+import Inventory from './pages/inventory/inventory';
+import Friends from './pages/friends/friends';
+import Trade from './pages/trade/trade';
+import Wishlist from './pages/wishlist/wishlist';
 // import Signup from './pages/sign-in/signup';
 import Navbar from './components/navbar';
 import Explore from './pages/explore/explore';
 import Footer from './components/Footer';
 import Set from './pages/explore/set';
+
 /**
 * This function allows one component to be rendered
 * and mounted once. When navigating to other pages,
@@ -31,7 +35,10 @@ function AppLayout() {
        <Route path="/" element={<Landing />} />
        <Route path="/explore" element={<Explore />} />
        <Route path="/set/:setId" element={<Set />} />
-       {/* <Route path="/inventory" element={<Inventory />} /> */}
+       <Route path="/friends" element={<Friends />}/>
+       <Route path="/inventory" element={<Inventory />} />
+       <Route path="/trade" element={<Trade />} />
+       <Route path="/wishlist" element={<Wishlist />} />
      </Routes>
    </>
  );

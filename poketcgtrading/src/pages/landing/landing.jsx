@@ -4,43 +4,41 @@ import { Link, useNavigate } from 'react-router-dom';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '../../firebase';
 import { useState, useEffect } from "react"
-
+import { doc, setDoc, getFirestore } from 'firebase/firestore';
 
 function Landing() {
     const navigate = useNavigate();
     const [error, setError] = useState('');
+    const [appUsers, setAppUsers] = useState([]);
+    const db = getFirestore();
 
     const handleGoogleSignIn = async () => {
         try {
-            const result = await signInWithPopup(auth, googleProvider);
-            // Handle successful sign in
-            console.log('Successfully signed in with Google:', result.user);
-            // You can redirect or update state here
+            await signInWithPopup(auth, googleProvider);
+            navigate('/main');
         } catch (error) {
-            console.error('Error signing in with Google:', error);
+            console.error('Error with Google sign-in', error);
+            setError(error.message);
         }
-    };
+    }
 
     const handleGoogleSignUp = async () => {
-        // try {
-        //     // Check if the user already exist in the system
-        //     const userRef = collecition(firestoreDb, "users");
-        //     const q = query(userRef, where("email", "==", user.email))
-        //     const userSnapshot = await getDocs(q);
-
-        //     if (!userSnapshot.empty) {
-        //         setError("User already exists in the system.");
-        //         return;
-        //     }
-        // }
         try {
-            await signInWithPopup(auth, googleProvider);
-            // Create new user to the database
-            // const user = doc(collection(firestoreDb, "users"));
+            const result = await signInWithPopup(auth, googleProvider);
+            const user = result.user;
+            
+            // Create user document in Firestore
+            await setDoc(doc(db, "users", user.uid), {
+                email: user.email,
+                displayName: user.displayName,
+                photoURL: user.photoURL,
+                createdAt: new Date().toISOString()
+            });
 
             navigate('/main');
         } catch (error) {
             console.error('Error with Google sign-up', error);
+            setError(error.message);
         }
     }
 

@@ -35,7 +35,6 @@ function Explore()  {
     fetchSets();
   }, []);
 
-  
   return (
     <div className='min-h-screen '>
       <div className='w-full max-w-lg mx-5 my-5'>
