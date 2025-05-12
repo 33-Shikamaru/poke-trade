@@ -7,7 +7,8 @@ function Set() {
     const [cards, setCards] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
+    const [quantities, setQuantities] = useState({});
+    
     useEffect(() => {
         const fetchSetAndCards = async () => {
             try {
@@ -45,6 +46,13 @@ function Set() {
 
         fetchSetAndCards();
     }, [setId]);
+
+    const updateQuantity = (cardId, change) => {
+        setQuantities(prev => ({
+            ...prev,
+            [cardId]: Math.max(0, (prev[cardId] || 0) + change)
+        }));
+    };
 
     if (loading) {
         return (
@@ -96,17 +104,25 @@ function Set() {
                         {cards.map((card) => (
                             <div 
                                 key={card.id} 
-                                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300"
+                                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 dark:bg-gray-400"
                             >
                                 <img 
                                     src={card.images.small} 
                                     alt={card.name}
                                     className="w-full h-auto object-contain bg-gray-100 p-2"
                                 />
-                                <div className="p-3">
-                                    <h3 className="font-semibold text-gray-800">{card.name}</h3>
-                                    <p className="text-sm text-gray-600">{card.number}/{set.printedTotal}</p>
+                                <div className='flex flex-col justify-between items-center'>
+                                  <div className="p-3">
+                                      <h3 className="font-semibold text-gray-800">{card.name}</h3>
+                                      <p className="text-sm text-gray-600">{card.number}/{set.printedTotal}</p>
+                                  </div>
+                                  <div className='flex items-center justify-center gap-2 p-3'>
+                                    <button className='border border-gray-200 px-4 py-2 rounded-md hover:bg-gray-100' onClick={() => updateQuantity(card.id, -1)}>-</button>
+                                    <p className='text-gray-800 font-semibold p-0.5 w-8 text-center'>{quantities[card.id] || 0}</p>
+                                    <button className='border border-gray-200 px-4 py-2 rounded-md hover:bg-gray-100' onClick={() => updateQuantity(card.id, 1)}>+</button>
+                                  </div>
                                 </div>
+
                             </div>
                         ))}
                     </div>
