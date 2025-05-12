@@ -6,6 +6,8 @@ import { FaRegUserCircle } from "react-icons/fa";
 import TCGLogo from "../assets/tcgLogo.png";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { RxCross2 } from "react-icons/rx";
+import AlertMenu from './AlertMenu';
+import UserMenu from './UserMenu';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -16,63 +18,94 @@ const Navbar = () => {
   // This reduces the repetitive tailwindcss styling for each link
   const navClass = (path) => {
     return isActive(path)
-          ? 'flex items-center justify-center rounded p-1 hover:bg-gray-200 text-blue-400'
-          : 'flex items-center justify-center rounded p-1 hover:bg-gray-200';
+          ? 'flex items-center justify-center rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700 text-blue-400 dark:text-blue-300'
+          : 'flex items-center justify-center rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-gray-200';
   }
   const [isOpen, setIsOpen] = useState(false);
+  const [isAlertMenuOpen, setIsAlertMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   
   const handleSignOut = () => {
     // TODO: Need to handle signing out authentication here before navigating to sign out page
     navigate('/');
   }
+
+  const displayAlertMenu = () => {
+    setIsAlertMenuOpen(true);
+  }
+
+  const displayUserMenu = () => {
+    setIsUserMenuOpen(true);
+  }
   
   return (
-    <nav className='relative flex items-center justify-between border-b border-gray-400 px-4 py-2'>
-      {/* Logo */}
-      <img className='flex items-center' src={TCGLogo} width={80} alt='Poke Trader Logo' />
+    <>
+      <nav className='relative flex items-center justify-between border-b border-gray-400 dark:border-gray-700 px-4 py-2 bg-white dark:bg-gray-800 transition-colors duration-200'>
+        {/* Logo */}
+        <img className='flex items-center' src={TCGLogo} width={80} alt='Poke Trader Logo' onClick={() => navigate('/explore')}/>
 
-      {/* Desktop Navigation */}
-      <div className='hidden md:flex absolute left-1/2 transform -translate-x-1/2 space-x-6 text-center'>
-        <Link to='/explore' className={navClass('/explore')}>Explore</Link>
-        <Link to='/inventory' className={navClass('/inventory')}>Inventory</Link>
-        <Link to='/wishlist' className={navClass('/wishlist')}>Wish List</Link>
-        <Link to='/friends' className={navClass('/friends')}>Friends</Link>
-        <Link to='/trades' className={navClass('/trades')}>Trade</Link>
-      </div>
-
-      {/* Burger Icon (mobile only) */}
-      <div className='md:hidden'>
-        <button onClick={() => setIsOpen(!isOpen)} className='text-2xl'>
-          {isOpen ? <RxCross2 /> : <RxHamburgerMenu />}
-        </button>
-      </div>
-
-      {/* Desktop Right Side Buttons */}
-      <div className='hidden md:flex gap-2'>
-        <button className='items-center rounded hover:bg-gray-200 text-2xl p-2'><TbBellRinging /></button>
-        <button className='items-center rounded hover:bg-gray-200 text-2xl p-2'><FaRegUserCircle /></button>
-        <Link className='flex items-center justify-center rounded-xl bg-black text-white p-0.5 px-3 hover:bg-gray-500 text-sm'>Sign Out</Link>
-      </div>
-
-      {/* Mobile Dropdown Menu */}
-      
-      <div
-        className={`absolute top-full left-0 w-full flex flex-col items-center bg-gray-200 py-4 space-y-3 border-t border-gray-200 md:hidden z-10 transform transition-transform duration-300 ease-in-out origin-top ${
-          isOpen ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0 pointer-events-none'
-        }`}
-      >
+        {/* Desktop Navigation */}
+        <div className='hidden md:flex absolute left-1/2 transform -translate-x-1/2 space-x-6 text-center'>
           <Link to='/explore' className={navClass('/explore')}>Explore</Link>
           <Link to='/inventory' className={navClass('/inventory')}>Inventory</Link>
           <Link to='/wishlist' className={navClass('/wishlist')}>Wish List</Link>
           <Link to='/friends' className={navClass('/friends')}>Friends</Link>
-          <Link to='/trade' className={navClass('/trade')}>Trade</Link>
-          <hr className="border-t border-gray-400 w-1/4" />
-          <Link to='/alerts' className={navClass('/alerts')}>Alerts</Link>
-          <Link to='/profile' className={navClass('/profile')}>Profile</Link>
-          <button onClick={handleSignOut} className='flex justify-content align-items text-center rounded-xl bg-black text-white p-1 px-3 hover:bg-gray-500 text-sm'>Sign Out</button>
+          <Link to='/trades' className={navClass('/trades')}>Trade</Link>
         </div>
 
-    </nav>
-)};
+        {/* Burger Icon (mobile only) */}
+        <div className='md:hidden'>
+          <button onClick={() => setIsOpen(!isOpen)} className='text-2xl text-gray-800 dark:text-gray-200'>
+            {isOpen ? <RxCross2 /> : <RxHamburgerMenu />}
+          </button>
+        </div>
+
+        {/* Desktop Right Side Buttons */}
+        <div className='hidden md:flex gap-2'>
+          <button 
+            className={`items-center rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-2xl p-2 text-gray-800 dark:text-gray-200 ${isActive('/notifications') ? 'text-blue-400 dark:text-blue-300' : ''}`}
+            onClick={displayAlertMenu}>
+              <TbBellRinging />
+          </button>
+          <button 
+            className={`items-center rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-2xl p-2 text-gray-800 dark:text-gray-200 ${isActive('/profile') ? 'text-blue-400 dark:text-blue-300' : ''}`}
+            onClick={displayUserMenu}>
+              <FaRegUserCircle />
+          </button>
+          <Link className='flex items-center justify-center rounded-xl bg-black dark:bg-gray-700 text-white p-0.5 px-3 hover:bg-gray-500 dark:hover:bg-gray-600 text-sm transition-colors duration-200'>Sign Out</Link>
+        </div>
+
+        {/* Mobile Dropdown Menu */}
+        <div
+          className={`absolute top-full left-0 w-full flex flex-col items-center bg-gray-200 dark:bg-gray-800 py-4 space-y-3 border-t border-gray-200 dark:border-gray-700 md:hidden z-10 transform transition-transform duration-300 ease-in-out origin-top ${
+            isOpen ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0 pointer-events-none'
+          }`}
+        >
+          <Link to='/explore' className={navClass('/explore')} onClick={() => setIsOpen(false)}>Explore</Link>
+          <Link to='/inventory' className={navClass('/inventory')} onClick={() => setIsOpen(false)}>Inventory</Link>
+          <Link to='/wishlist' className={navClass('/wishlist')} onClick={() => setIsOpen(false)}>Wish List</Link>
+          <Link to='/friends' className={navClass('/friends')} onClick={() => setIsOpen(false)}>Friends</Link>
+          <Link to='/trade' className={navClass('/trade')} onClick={() => setIsOpen(false)}>Trade</Link>
+          <hr className="border-t border-gray-400 dark:border-gray-600 w-1/4" />
+          <Link to='/alerts' className={navClass('/alerts')} onClick={() => setIsOpen(false)}>Alerts</Link>
+          <Link to='/profile' className={navClass('/profile')} onClick={() => setIsOpen(false)}>Profile</Link>
+          <button onClick={handleSignOut} className='flex justify-content align-items text-center rounded-xl bg-black dark:bg-gray-700 text-white p-1 px-3 hover:bg-gray-500 dark:hover:bg-gray-600 text-sm transition-colors duration-200'>Sign Out</button>
+        </div>
+      </nav>
+
+      {/* Alert Menu Overlay */}
+      <AlertMenu 
+        isOpen={isAlertMenuOpen} 
+        onClose={() => setIsAlertMenuOpen(false)} 
+      />
+
+      {/* User Menu Overlay */}
+      <UserMenu 
+        isOpen={isUserMenuOpen} 
+        onClose={() => setIsUserMenuOpen(false)} 
+      />
+    </>
+  );
+};
 
 export default Navbar;
