@@ -1,16 +1,206 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { signInWithPopup } from 'firebase/auth';
-import { auth, googleProvider } from '../../firebase';
-import { useState, useEffect } from "react"
-import { doc, setDoc, getFirestore } from 'firebase/firestore';
-
+import { useEffect, useState } from "react";
+import { doc, getDoc, setDoc, getFirestore } from "firebase/firestore";
+import { auth } from "../../firebase";
+import { FaTrash, FaCheck } from "react-icons/fa";
+import { FcCancel } from "react-icons/fc";
 
 function Inventory() {
+  const [inventory, setInventory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [pendingChanges, setPendingChanges] = useState({});
+  const db = getFirestore();
+
+  const fetchInventory = async () => {
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      const userRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userRef);
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        setInventory(userData.inventory || []);
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching inventory:", error);
+      setError(error.message);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchInventory();
+  }, []);
+
+  const updateQuantity = (cardId, change) => {
+    setPendingChanges(prev => {
+      const originalCard = inventory.find(card => card.cardId === cardId);
+      const originalQuantity = originalCard?.quantity || 0;
+      const newPending = (prev[cardId] || 0) + change;
+      const finalQuantity = originalQuantity + newPending;
+  
+      const updatedChanges = { ...prev };
+  
+      if (finalQuantity === originalQuantity) {
+        delete updatedChanges[cardId]; // remove no-op changes
+      } else {
+        updatedChanges[cardId] = newPending;
+      }
+  
+      return updatedChanges;
+    });
+  };
+
+  const confirmChanges = async (cardId) => {
+    try {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const userRef = doc(db, "users", user.uid);
+      const updatedInventory = inventory.map(card => {
+        if (card.cardId === cardId) {
+          const newQuantity = Math.max(0, card.quantity + (pendingChanges[cardId] || 0));
+          return { ...card, quantity: newQuantity };
+        }
+        return card;
+      }).filter(card => card.quantity > 0);
+
+      await setDoc(userRef, { inventory: updatedInventory }, { merge: true });
+      setInventory(updatedInventory);
+      setPendingChanges(prev => {
+        const newChanges = { ...prev };
+        delete newChanges[cardId];
+        return newChanges;
+      });
+    } catch (error) {
+      console.error("Error updating quantity:", error);
+      setError(error.message);
+    }
+  };
+
+  const cancelChanges = (cardId) => {
+    setPendingChanges(prev => {
+      const newChanges = { ...prev };
+      delete newChanges[cardId];
+      return newChanges;
+    });
+  };
+
+  const deleteCard = async (cardId) => {
+    try {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const userRef = doc(db, "users", user.uid);
+      const updatedInventory = inventory.filter(card => card.cardId !== cardId);
+
+      await setDoc(userRef, { inventory: updatedInventory }, { merge: true });
+      setInventory(updatedInventory);
+    } catch (error) {
+      console.error("Error deleting card:", error);
+      setError(error.message);
+    }
+  };
+
+  if (loading) {
     return (
-        <div>
-        <h1>Inventory</h1>
-        </div>
-    )
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-red-500 text-center min-h-screen flex items-center justify-center">
+        {error}
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 className="text-4xl font-bold mb-8">My Inventory</h1>
+        
+        {inventory.length === 0 ? (
+          <div className="text-center py-12 bg-gray-100">
+            <p className="text-gray-600">Your inventory is empty. Start adding cards from the Explore page!</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 bg-gray-100 p-2 rounded">
+            {inventory.map((card) => (
+              <div
+                key={card.cardId}
+                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300"
+              >
+                <img
+                  src={card.image}
+                  alt={card.name}
+                  className="w-full h-auto object-contain bg-gray-100 p-2"
+                />
+                <div className="p-4">
+                  <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-gray-900">{card.name}</h3>
+                  <button
+                        onClick={() => deleteCard(card.cardId)}
+                        className="text-red-500 bg-gray-200 p-1 rounded hover:text-red-700"
+                      >
+                        <FaTrash />
+                      </button>
+                  </div>
+
+                  <p className="text-sm text-gray-600 mt-2">{card.setName}</p>
+                  <div className="flex items-center justify-between mt-2">
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => updateQuantity(card.cardId, -1)}
+                        className="w-6 h-6 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100"
+                      >
+                        -
+                      </button>
+                      <span className="text-gray-600">
+                        {card.quantity + (pendingChanges[card.cardId] || 0)}
+                      </span>
+                      <button
+                        onClick={() => updateQuantity(card.cardId, 1)}
+                        className="w-6 h-6 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100"
+                      >
+                        +
+                      </button>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      {pendingChanges[card.cardId] && (
+                        <>
+                          <button
+                            onClick={() => confirmChanges(card.cardId)}
+                            className="text-green-500 bg-gray-200 p-1 rounded hover:text-green-700"
+                          >
+                            <FaCheck />
+                          </button>
+                          <button
+                            onClick={() => cancelChanges(card.cardId)}
+                            className="text-red-500 bg-gray-200 p-1 rounded hover:text-red-700"
+                          >
+                            <FcCancel />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default Inventory;
