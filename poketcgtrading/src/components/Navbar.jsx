@@ -87,7 +87,7 @@ const Navbar = () => {
           <Link to='/friends' className={navClass('/friends')} onClick={() => setIsOpen(false)}>Friends</Link>
           <Link to='/trade' className={navClass('/trade')} onClick={() => setIsOpen(false)}>Trade</Link>
           <hr className="border-t border-gray-400 dark:border-gray-600 w-1/4" />
-          <Link to='/alerts' className={navClass('/alerts')} onClick={() => setIsOpen(false)}>Alerts</Link>
+          <Link to='/notifications' className={navClass('/notifications')} onClick={() => setIsOpen(false)}>Notifications</Link>
           <Link to='/profile' className={navClass('/profile')} onClick={() => setIsOpen(false)}>Profile</Link>
           <button onClick={handleSignOut} className='flex justify-content align-items text-center rounded-xl bg-black dark:bg-gray-700 text-white p-1 px-3 hover:bg-gray-500 dark:hover:bg-gray-600 text-sm transition-colors duration-200'>Sign Out</button>
         </div>

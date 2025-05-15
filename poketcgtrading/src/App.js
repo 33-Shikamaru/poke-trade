@@ -11,6 +11,8 @@ import Navbar from './components/Navbar';
 import Explore from './pages/explore/explore';
 import Footer from './components/Footer';
 import Set from './pages/explore/set';
+import Notifications from './pages/notifications/notifications';
+// import Profile from './pages/profile/profile';
 
 /**
 * This function allows one component to be rendered
@@ -40,6 +42,9 @@ function AppLayout() {
          <Route path="/inventory" element={<Inventory />} />
          <Route path="/trade" element={<Trade />} />
          <Route path="/wishlist" element={<Wishlist />} />
+
+         <Route path="/notifications" element={<Notifications />} />
+         {/* <Route path="/profile" element={<Profile />} /> */}
        </Routes>
      </main>
    </>
