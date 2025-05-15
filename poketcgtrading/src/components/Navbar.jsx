@@ -50,7 +50,7 @@ const Navbar = () => {
           <Link to='/inventory' className={navClass('/inventory')}>Inventory</Link>
           <Link to='/wishlist' className={navClass('/wishlist')}>Wish List</Link>
           <Link to='/friends' className={navClass('/friends')}>Friends</Link>
-          <Link to='/trades' className={navClass('/trades')}>Trade</Link>
+          <Link to='/trade' className={navClass('/trade')}>Trade</Link>
         </div>
 
         {/* Burger Icon (mobile only) */}

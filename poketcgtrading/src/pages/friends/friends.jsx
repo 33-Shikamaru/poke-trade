@@ -7,9 +7,12 @@ import { doc, setDoc, getFirestore } from 'firebase/firestore';
 
 function Friends() {
     return (
-        <div>
-        <h1>Friend List</h1>
+      <div className='min-h-screen'>
+        <div className='w-full max-w-lg mx-5 my-5'>
+          <h1 className='text-4xl font-bold pb-5'>Friends</h1>
         </div>
+        
+      </div>
     )
 }
 

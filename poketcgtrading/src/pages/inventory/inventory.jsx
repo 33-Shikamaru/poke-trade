@@ -13,8 +13,8 @@ function Inventory() {
     }];
 
   return (
-    <div className='min-h-screen w-full overflow-x-hidden'>
-      <div className='w-full max-w-lg mx-auto px-4 my-5'>
+    <div className='min-h-screen'>
+      <div className='w-full max-w-lg mx-5 my-5'>
         <h1 className='text-4xl font-bold pb-5'>Inventory</h1>
       </div>
       {/* Body Inventory Container */}
