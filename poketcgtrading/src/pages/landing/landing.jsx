@@ -15,7 +15,7 @@ function Landing() {
     const handleGoogleSignIn = async () => {
         try {
             await signInWithPopup(auth, googleProvider);
-            navigate('/explore');
+            navigate('/main');
         } catch (error) {
             console.error('Error with Google sign-in', error);
             setError(error.message);
@@ -32,7 +32,21 @@ function Landing() {
                 email: user.email,
                 displayName: user.displayName,
                 photoURL: user.photoURL,
-                createdAt: new Date().toISOString()
+                createdAt: new Date().toISOString(),
+                age : 0,
+                firstName: "",
+                lastName: "",
+                friendCode: "",
+                friendList: [],
+                inventory: [],
+                offers: [],
+                rating: 0,
+                tradeComplete: 0,
+                trades: [],
+                wishList: {
+                    cards: [],
+                    favorites: []
+                }
             });
 
             navigate('/main');
