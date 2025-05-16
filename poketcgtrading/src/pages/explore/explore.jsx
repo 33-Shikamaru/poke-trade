@@ -13,8 +13,15 @@ function Explore() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [tempSearchQuery, setTempSearchQuery] = useState("");
   const [searchType, setSearchType] = useState("all"); // "all", "card", "set"
   const [isSearchTypeOpen, setIsSearchTypeOpen] = useState(false);
+
+  // Handle search submission
+  const handleSearch = (e) => {
+    e.preventDefault();
+    setSearchQuery(tempSearchQuery);
+  };
 
   // Initial fetch of all sets
   useEffect(() => {
@@ -60,7 +67,6 @@ function Explore() {
         setLoading(true);
         try {
           console.log("Fetching cards with query:", searchQuery);
-          // Use contains operator for partial matching
           const response = await fetch(
             `https://api.pokemontcg.io/v2/cards?q=name:"*${searchQuery}*"`,
             {
@@ -83,7 +89,6 @@ function Explore() {
             throw new Error("Invalid response format from API");
           }
 
-          // Additional client-side filtering to ensure exact matches
           const filteredCards = data.data.filter(card => 
             card.name.toLowerCase().includes(searchQuery.toLowerCase())
           );
@@ -149,7 +154,7 @@ function Explore() {
 
         {/* Search Section */}
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-          <div className="flex gap-2 w-full sm:w-auto">
+          <form onSubmit={handleSearch} className="flex gap-2 w-full sm:w-auto">
             {/* Search Type Dropdown */}
             <div className="relative">
               <button
@@ -206,13 +211,21 @@ function Explore() {
                 type="text"
                 placeholder={`Search by ${searchType === "all" ? "card name or set" : 
                            searchType === "card" ? "card name" : "set name"}...`}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={tempSearchQuery}
+                onChange={(e) => setTempSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
-          </div>
+
+            {/* Search Button */}
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              Search
+            </button>
+          </form>
         </div>
         
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
