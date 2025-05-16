@@ -4,6 +4,8 @@ import { auth } from "../../firebase";
 import { FaTrash, FaCheck, FaStar } from "react-icons/fa";
 import { FcCancel } from "react-icons/fc";
 import { Link } from "react-router-dom"
+import Dropdown from "../../components/Dropdown";
+
 
 function Wishlist() {
   const [wishlist, setWishlist] = useState([]);
@@ -194,8 +196,6 @@ function Wishlist() {
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-
         {error && (
           <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
             {error}
@@ -247,6 +247,24 @@ function Wishlist() {
 
         {/* Rest of Wishlist */}
         <h1 className="text-4xl font-bold mb-8 dark:text-gray-300">My Wishlist</h1>
+
+        {/* Dropdown Filters */}
+        <div className='flex flex-col sm:flex-row justify-center items-center pb-10 gap-2 sm:gap-5 text-md'>
+          <div className='flex flex-row justify-center items-center gap-1 sm:gap-2 w-3/4 sm:w-auto'>
+            <p className='w-full text-center sm:text-left'>Platform:</p>
+            <Dropdown typeFilter="platform" />
+          </div>
+          <div className='flex flex-row justify-center items-center gap-1 sm:gap-2 w-3/4 sm:w-auto'>
+            <p className='w-full text-center sm:text-left'>Sort By:</p>
+            <Dropdown typeFilter="sort" />
+          </div>
+          <div className='flex flex-row justify-center items-center gap-1 sm:gap-2 w-3/4 sm:w-auto'>
+            <p className='w-full text-center sm:text-left'>Filter By:</p>
+            <Dropdown typeFilter="filter" />
+          </div>
+        </div>
+
+
         {wishlist.length === 0 ? (
           <div className="text-center py-12 bg-gray-100">
             <p className="text-gray-600">
@@ -254,7 +272,7 @@ function Wishlist() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 bg-gray-100 p-2 rounded">
+            <div className="grid grid-cols-2 sm:d-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 bg-gray-100 dark:bg-gray-800 p-2 rounded-xl">
             {wishlist.map((card) => (
               <div
                 key={card.cardId}

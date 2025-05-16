@@ -3,6 +3,7 @@ import { doc, getDoc, setDoc, getFirestore } from "firebase/firestore";
 import { auth } from "../../firebase";
 import { FaTrash, FaCheck } from "react-icons/fa";
 import { FcCancel } from "react-icons/fc";
+import Dropdown from "../../components/Dropdown";
 
 function Inventory() {
   const [inventory, setInventory] = useState([]);
@@ -127,35 +128,51 @@ function Inventory() {
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-4xl font-bold mb-8">My Inventory</h1>
+
+        {/* Dropdown Filters */}
+        <div className='flex flex-col sm:flex-row justify-center items-center pb-10 gap-2 sm:gap-5 text-md'>
+          <div className='flex flex-row justify-center items-center gap-1 sm:gap-2 w-3/4 sm:w-auto'>
+            <p className='w-full text-center sm:text-left'>Platform:</p>
+            <Dropdown typeFilter="platform" />
+          </div>
+          <div className='flex flex-row justify-center items-center gap-1 sm:gap-2 w-3/4 sm:w-auto'>
+            <p className='w-full text-center sm:text-left'>Sort By:</p>
+            <Dropdown typeFilter="sort" />
+          </div>
+          <div className='flex flex-row justify-center items-center gap-1 sm:gap-2 w-3/4 sm:w-auto'>
+            <p className='w-full text-center sm:text-left'>Filter By:</p>
+            <Dropdown typeFilter="filter" />
+          </div>
+        </div>
         
         {inventory.length === 0 ? (
-          <div className="text-center py-12 bg-gray-100">
+          <div className="text-center py-12">
             <p className="text-gray-600">Your inventory is empty. Start adding cards from the Explore page!</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 bg-gray-100 p-2 rounded">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 bg-gray-100 dark:bg-gray-800 p-2 rounded-xl">
             {inventory.map((card) => (
               <div
-                key={card.cardId}
-                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300"
-              >
-                <img
-                  src={card.image}
-                  alt={card.name}
-                  className="w-full h-auto object-contain bg-gray-100 p-2"
-                />
-                <div className="p-4">
-                  <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-gray-900">{card.name}</h3>
+              key={card.cardId}
+              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 dark:bg-gray-600"
+            >
+              <img
+                src={card.image}
+                alt={card.name}
+                className="w-full h-auto object-contain p-2 bg-gray-200 dark:bg-transparent"
+              />
+              <div className="p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-300">{card.name}</h3>
                   <button
-                        onClick={() => deleteCard(card.cardId)}
-                        className="text-red-500 bg-gray-200 p-1 rounded hover:text-red-700"
-                      >
-                        <FaTrash />
-                      </button>
-                  </div>
-
-                  <p className="text-sm text-gray-600 mt-2">{card.setName}</p>
+                    onClick={() => deleteCard(card.cardId)}
+                    className="text-red-500 bg-gray-200 p-1 rounded hover:text-red-700"
+                  >
+                    <FaTrash />
+                  </button>
+                </div>
+              
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">{card.setName}</p>
                   <div className="flex items-center justify-between mt-2">
                     <div className="flex items-center space-x-2">
                       <button
@@ -164,7 +181,7 @@ function Inventory() {
                       >
                         -
                       </button>
-                      <span className="text-gray-600">
+                      <span className="text-gray-600 dark:text-gray-300">
                         {card.quantity + (pendingChanges[card.cardId] || 0)}
                       </span>
                       <button
