@@ -39,14 +39,14 @@ function Explore() {
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
             Explore All the Sets of Cards
           </h1>
         </div>
         
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">How the App Works:</h2>
-          <ol className="list-decimal pl-5 space-y-2 text-gray-600">
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-8 dark:bg-gray-800">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 dark:text-gray-100">How the App Works:</h2>
+          <ol className="list-decimal pl-5 space-y-2 text-gray-600 dark:text-gray-300">
             <li>Add cards to your inventory.</li>
             <li>Add cards to your wishlist.</li>
             <li>Browse other users who have the card you want.</li>
@@ -66,10 +66,10 @@ function Explore() {
             {sets.map((set) => (
               <div
                 key={set.id}
-                className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300 cursor-pointer"
+                className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300 cursor-pointer dark:bg-gray-600 dark:text-gray-300"
                 onClick={() => navigate(`/set/${set.id}`)}
               >
-                <div className="aspect-w-16 aspect-h-9 bg-gray-100">
+                <div className="aspect-w-16 aspect-h-9 bg-gray-100 dark:bg-gray-400">
                   <img
                     src={set.images.logo}
                     alt={`${set.name} logo`}
@@ -77,10 +77,10 @@ function Explore() {
                   />
                 </div>
                 <div className="p-4">
-                  <h2 className="text-lg font-semibold text-gray-900 truncate">
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
                     {set.name}
                   </h2>
-                  <p className="text-sm text-gray-600 mt-1">{set.series}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{set.series}</p>
                 </div>
               </div>
             ))}

@@ -58,8 +58,8 @@ function Trade() {
         <h1 className="text-4xl font-bold mb-8">Trades</h1>
         
         {tradeList.length === 0 ? (
-          <div className="text-center py-12 bg-gray-100">
-            <p className="text-gray-600">Your trade list is empty.</p>
+            <div className="text-center py-12 bg-gray-100 dark:bg-gray-800 rounded-lg p-4 text-gray-800 dark:text-gray-300">
+              <p className="text-gray-600 dark:text-gray-300">Your trade list is empty.</p>
           </div>
         ) : (
           <div>Hello</div>

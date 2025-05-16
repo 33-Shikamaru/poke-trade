@@ -204,7 +204,7 @@ function Wishlist() {
 
         {/* Favorites Section */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-8 dark:text-gray-300">Favorite Cards</h1>
+          <h1 className="text-4xl font-bold mb-8 dark:text-gray-00">Favorite Cards</h1>
           <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 max-w-3xl mx-auto gap-7">
             {favorites.length > 0 ? (
               favorites.map(cardId => {
@@ -266,8 +266,8 @@ function Wishlist() {
 
 
         {wishlist.length === 0 ? (
-          <div className="text-center py-12 bg-gray-100">
-            <p className="text-gray-600">
+          <div className="text-center py-12 bg-gray-100 dark:bg-gray-800 rounded-lg p-4 text-gray-800 dark:text-gray-300">
+            <p className="text-gray-600 dark:text-gray-300">
               Your wishlist is empty. Start adding cards from the <Link to="/explore" className="text-blue-500 hover:text-blue-700">Explore page</Link>!
             </p>
           </div>

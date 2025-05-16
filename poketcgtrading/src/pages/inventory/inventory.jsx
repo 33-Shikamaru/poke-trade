@@ -147,8 +147,8 @@ function Inventory() {
         </div>
         
         {inventory.length === 0 ? (
-          <div className="text-center py-12 bg-gray-100">
-            <p className="text-gray-600">Your inventory is empty. Start adding cards from the <Link to="/explore" className="text-blue-500 hover:text-blue-700">Explore page</Link>!</p>
+          <div className="text-center py-12 bg-gray-100 dark:bg-gray-800 rounded-lg p-4 text-gray-800 dark:text-gray-300">
+            <p className="text-gray-600 dark:text-gray-300">Your inventory is empty. Start adding cards from the <Link to="/explore" className="text-blue-500 hover:text-blue-700">Explore page</Link>!</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 bg-gray-100 dark:bg-gray-800 p-2 rounded-xl">
