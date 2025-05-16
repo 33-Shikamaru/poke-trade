@@ -140,6 +140,8 @@ function Wishlist() {
       if (!user) return;
 
       const userRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userRef);
+      const userData = userDoc.data();
       let updatedFavorites;
 
       if (favorites.includes(cardId)) {
@@ -168,12 +170,16 @@ function Wishlist() {
         updatedFavorites = [...favorites, cardId];
       }
 
-      await setDoc(userRef, { 
+      // Update both wishlist and favorites in the database
+      await setDoc(userRef, {
+        ...userData,
         wishList: {
-          cards: wishlist,
+          cards: userData.wishList.cards || [],
           favorites: updatedFavorites
         }
-      }, { merge: true });
+      });
+
+      // Update local state
       setFavorites(updatedFavorites);
     } catch (error) {
       console.error("Error updating favorites:", error);

@@ -146,14 +146,11 @@ function Explore() {
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900">
-            Explore All the Sets of Cards
-          </h1>
-        </div>
-
-        {/* Search Section */}
+        {/* Header and Search Section */}
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+          <h1 className="text-4xl font-bold text-gray-900">
+            All the Sets of Cards
+          </h1>
           <form onSubmit={handleSearch} className="flex gap-2 w-full sm:w-auto">
             {/* Search Type Dropdown */}
             <div className="relative">
@@ -227,7 +224,7 @@ function Explore() {
             </button>
           </form>
         </div>
-        
+
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">How the App Works:</h2>
           <ol className="list-decimal pl-5 space-y-2 text-gray-600">

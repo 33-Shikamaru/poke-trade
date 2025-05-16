@@ -10,8 +10,10 @@ import AlertMenu from './AlertMenu';
 import UserMenu from './UserMenu';
 import { auth } from "../firebase";
 import { signOut } from "firebase/auth";
+import { useAuthState } from 'react-firebase-hooks/auth';
 
 const Navbar = () => {
+  const [user] = useAuthState(auth);
   const navigate = useNavigate();
   
   const location = useLocation();
@@ -30,7 +32,7 @@ const Navbar = () => {
   const handleSignOut = async () => {
     try {
       await signOut(auth);
-      navigate('/landing');
+      navigate('/');
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -55,6 +57,7 @@ const Navbar = () => {
           <Link to='/explore' className={navClass('/explore')}>Explore</Link>
           <Link to='/inventory' className={navClass('/inventory')}>Inventory</Link>
           <Link to='/wishlist' className={navClass('/wishlist')}>Wish List</Link>
+          <Link to='/search' className={navClass('/search')}>Search</Link>
           <Link to='/friends' className={navClass('/friends')}>Friends</Link>
           <Link to='/trade' className={navClass('/trade')}>Trade</Link>
         </div>
@@ -76,7 +79,7 @@ const Navbar = () => {
           <button 
             className={`items-center rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-2xl p-2 text-gray-800 dark:text-gray-200 ${isActive('/profile') ? 'text-blue-400 dark:text-blue-300' : ''}`}
             onClick={displayUserMenu}>
-              <FaRegUserCircle />
+              <img src={user?.photoURL || 'https://api.dicebear.com/6.x/initials/svg?seed=' + user?.email} alt="User profile" className="w-8 h-8 rounded-full" />
           </button>
           <Link 
           onClick={handleSignOut}
@@ -92,6 +95,7 @@ const Navbar = () => {
           <Link to='/explore' className={navClass('/explore')} onClick={() => setIsOpen(false)}>Explore</Link>
           <Link to='/inventory' className={navClass('/inventory')} onClick={() => setIsOpen(false)}>Inventory</Link>
           <Link to='/wishlist' className={navClass('/wishlist')} onClick={() => setIsOpen(false)}>Wish List</Link>
+          <Link to='/search' className={navClass('/search')} onClick={() => setIsOpen(false)}>Search</Link>
           <Link to='/friends' className={navClass('/friends')} onClick={() => setIsOpen(false)}>Friends</Link>
           <Link to='/trade' className={navClass('/trade')} onClick={() => setIsOpen(false)}>Trade</Link>
           <hr className="border-t border-gray-400 dark:border-gray-600 w-1/4" />

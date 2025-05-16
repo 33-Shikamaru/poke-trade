@@ -8,6 +8,8 @@ import Inventory from './pages/inventory/inventory';
 import Friends from './pages/friends/friends';
 import Trade from './pages/trade/trade';
 import Wishlist from './pages/wishlist/wishlist';
+import Search from './pages/search/search';
+import Profile from './pages/profile/profile';
 // import Signup from './pages/sign-in/signup';
 import Navbar from './components/Navbar';
 import Explore from './pages/explore/explore';
@@ -59,6 +61,9 @@ function AppLayout() {
           <Route path="/inventory" element={user ? <Inventory /> : <Navigate to="/landing" />} />
           <Route path="/trade" element={user ? <Trade /> : <Navigate to="/landing" />} />
           <Route path="/wishlist" element={user ? <Wishlist /> : <Navigate to="/landing" />} />
+          <Route path="/search" element={user ? <Search /> : <Navigate to="/landing" />} />
+          <Route path="/profile/:userId" element={user ? <Profile /> : <Navigate to="/landing" />} />
+          <Route path="/profile" element={user ? <Profile /> : <Navigate to="/landing" />} />
           <Route path="/" element={<Navigate to="/landing" />} />
         </Routes>
       </main>
