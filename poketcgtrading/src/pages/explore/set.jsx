@@ -86,7 +86,7 @@ function Set() {
       const userSnap = await getDoc(userRef);
       const currentData = userSnap.exists() ? userSnap.data() : {};
       const existingInventory = currentData.inventory || [];
-      const existingWishlist = currentData.wishlist || [];
+      const existingWishlist = currentData.wishList?.cards || [];
 
       console.log("Existing inventory:", existingInventory);
       console.log("Have quantities:", haveQuantities);
@@ -163,7 +163,10 @@ function Set() {
       // Save merged data to Firestore
       await setDoc(userRef, {
         inventory: mergedInventory,
-        wishlist: mergedWishlist
+        wishList: {
+          cards: mergedWishlist,
+          favorites: currentData.wishList?.favorites || []
+        }
       }, { merge: true });
 
       navigate('/inventory');
