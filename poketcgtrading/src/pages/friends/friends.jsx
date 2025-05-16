@@ -26,7 +26,7 @@ function Friends() {
             }
             setLoading(false);
         } catch (error) {
-            console.error("Error fetching friend list", error);
+            console.error("Error fetching friends list", error);
             setError(error.message);
             setLoading(false);
         }
@@ -55,11 +55,11 @@ function Friends() {
     return (
         <div className="min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <h1 className="text-4xl font-bold mb-8">Friend List</h1>
+          <h1 className="text-4xl font-bold mb-8">Friends List</h1>
           
           {friendList.length === 0 ? (
             <div className="text-center py-12 bg-gray-100">
-              <p className="text-gray-600">Your friend list is empt</p>
+              <p className="text-gray-600">Your friends list is empty.</p>
             </div>
           ) : (
             <div>Hello</div>
