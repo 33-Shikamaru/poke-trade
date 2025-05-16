@@ -8,6 +8,8 @@ import { RxHamburgerMenu } from "react-icons/rx";
 import { RxCross2 } from "react-icons/rx";
 import AlertMenu from './AlertMenu';
 import UserMenu from './UserMenu';
+import { auth } from "../firebase";
+import { signOut } from "firebase/auth";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -25,9 +27,13 @@ const Navbar = () => {
   const [isAlertMenuOpen, setIsAlertMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   
-  const handleSignOut = () => {
-    // TODO: Need to handle signing out authentication here before navigating to sign out page
-    navigate('/');
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      navigate('/landing');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   }
 
   const displayAlertMenu = () => {
@@ -72,7 +78,9 @@ const Navbar = () => {
             onClick={displayUserMenu}>
               <FaRegUserCircle />
           </button>
-          <Link className='flex items-center justify-center rounded-xl bg-black dark:bg-gray-700 text-white p-0.5 px-3 hover:bg-gray-500 dark:hover:bg-gray-600 text-sm transition-colors duration-200'>Sign Out</Link>
+          <Link 
+          onClick={handleSignOut}
+          className='flex items-center justify-center rounded-xl bg-black dark:bg-gray-700 text-white p-0.5 px-3 hover:bg-gray-500 dark:hover:bg-gray-600 text-sm transition-colors duration-200'>Sign Out</Link>
         </div>
 
         {/* Mobile Dropdown Menu */}

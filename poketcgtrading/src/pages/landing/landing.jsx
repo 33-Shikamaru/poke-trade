@@ -15,7 +15,7 @@ function Landing() {
     const handleGoogleSignIn = async () => {
         try {
             await signInWithPopup(auth, googleProvider);
-            navigate('/main');
+            navigate('/explore');
         } catch (error) {
             console.error('Error with Google sign-in', error);
             setError(error.message);

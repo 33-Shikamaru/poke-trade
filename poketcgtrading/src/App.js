@@ -1,5 +1,7 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from './firebase';
 // import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Landing from './pages/landing/landing';
 import Inventory from './pages/inventory/inventory';
@@ -24,19 +26,37 @@ import Profile from './pages/profile/profile';
 * This function returns the page structure of the application.
 */
 function AppLayout() {
- // Retrieves object details such as pathname, state, key.
- const location = useLocation();
- // A Boolean value that checks what page we are on
- const hideNavbar = location.pathname === '/';
+  const location = useLocation();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setLoading(false);
+    });
 
- return (
-   <>
-     {!hideNavbar && <Navbar />}
-     <main className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-200 w-full overflow-x-hidden">
+    return () => unsubscribe();
+  }, []);
+
+  const hideNavbar = location.pathname === '/landing' || location.pathname === '/';
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {!hideNavbar && <Navbar />}
+      <main className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-200 w-full overflow-x-hidden">
        <div className="w-full max-w-7xl mx-auto px-4">
          <Routes>
            <Route path="/" element={<Landing />} />
+           <Route path="/landing" element={<Landing />} />
            <Route path="/explore" element={<Explore />} />
            <Route path="/set/:setId" element={<Set />} />
            <Route path="/friends" element={<Friends />}/>
@@ -47,9 +67,9 @@ function AppLayout() {
            <Route path="/profile" element={<Profile />} />
          </Routes>
        </div>
-     </main>
-   </>
- );
+      </main>
+    </>
+  );
 }
 
 /**
