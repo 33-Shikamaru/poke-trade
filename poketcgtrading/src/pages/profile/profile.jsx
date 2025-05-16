@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MdDarkMode, MdNotifications, MdEdit, MdPerson, MdSecurity, MdHelp, MdStar, MdStarHalf, MdStarBorder } from 'react-icons/md';
+import { MdNotifications, MdEdit, MdPerson, MdSecurity, MdHelp, MdStar, MdStarHalf, MdStarBorder } from 'react-icons/md';
 import Gengar from '../../assets/gengar.png';
 
 function Profile() {
@@ -92,14 +92,14 @@ function Profile() {
                 <MdEdit className="text-xl" />
               </button>
             </div>
-            <div className="flex-1 text-center md:text-left">
-              <div className="flex justify-between items-start">
-                <div>
+            <div className="flex-1 w-full">
+              <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+                <div className="text-center md:text-left">
                   <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{userData.username}</h2>
                   <p className="text-gray-600 dark:text-gray-300">User ID: {userData.userId}</p>
                   <p className="text-gray-500 dark:text-gray-400 text-sm">Joined on {userData.joinDate}</p>
                 </div>
-                <div className="flex flex-col items-end">
+                <div className="flex flex-col items-center md:items-end">
                   <div className="flex">
                     {renderStars(userData.rating)}
                   </div>
@@ -108,7 +108,7 @@ function Profile() {
                   </span>
                 </div>
               </div>
-              <p className="text-gray-600 dark:text-gray-300 italic mt-2">{userData.bio}</p>
+              <p className="text-gray-600 dark:text-gray-300 italic mt-4 text-center md:text-left">{userData.bio}</p>
             </div>
           </div>
 
