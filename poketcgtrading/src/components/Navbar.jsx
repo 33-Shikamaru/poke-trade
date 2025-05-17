@@ -14,7 +14,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 
-const Navbar = () => {
+function Navbar() {
   const [user] = useAuthState(auth);
   const navigate = useNavigate();
   const [unreadCount, setUnreadCount] = useState(0);
@@ -156,6 +156,6 @@ const Navbar = () => {
       />
     </>
   );
-};
+}
 
 export default Navbar;
