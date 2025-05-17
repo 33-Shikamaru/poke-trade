@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { MdDarkMode, MdNotifications, MdEdit, MdPerson, MdSecurity, MdHelp, MdStar, MdStarHalf, MdStarBorder, MdPersonAdd } from 'react-icons/md';
+import { MdDarkMode, MdNotifications, MdEdit, MdPerson, MdSecurity, MdHelp, MdStar, MdStarHalf, MdStarBorder, MdPersonAdd, MdCollections } from 'react-icons/md';
 import { doc, getDoc, updateDoc, arrayUnion, arrayRemove, collection, setDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
 import Gengar from '../../assets/gengar.png';
@@ -278,26 +278,41 @@ function Profile() {
                 {userData.bio || 'No bio provided'}
               </p>
               {!isOwnProfile && (
-                <button
-                  onClick={isFriend ? handleRemoveFriend : handleAddFriend}
-                  disabled={isLoading}
-                  className={`mt-4 px-4 py-2 rounded-lg flex items-center gap-2 ${
-                    isLoading
-                      ? 'bg-gray-400 cursor-not-allowed'
-                      : isFriend
-                      ? 'bg-red-500 hover:bg-red-600'
-                      : 'bg-blue-500 hover:bg-blue-600'
-                  } text-white transition-colors`}
-                >
-                  {isLoading ? (
-                    <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
-                  ) : (
-                    <>
-                      <MdPersonAdd className="text-xl" />
-                      {isFriend ? 'Remove Friend' : 'Add Friend'}
-                    </>
-                  )}
-                </button>
+                <div className="flex gap-2 w-full max-w-2xl">
+                  <button
+                    onClick={handleAddFriend}
+                    className={`flex-1 flex items-center justify-center gap-2 px-6 py-2 rounded-lg ${
+                      isLoading
+                        ? 'bg-gray-400 cursor-not-allowed'
+                        : isFriend
+                        ? 'bg-red-500 hover:bg-red-600 text-white'
+                        : 'bg-blue-500 hover:bg-blue-600 text-white'
+                    } transition-colors duration-200`}
+                  >
+                    {isLoading ? (
+                      <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+                    ) : (
+                      <>
+                        <MdPersonAdd className="text-xl" />
+                        {isFriend ? 'Remove Friend' : 'Add Friend'}
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => navigate(`/profile/${userData.userId}/inventory`)}
+                    className="flex-1 flex items-center justify-center gap-2 px-6 py-2 rounded-lg bg-green-500 hover:bg-green-600 text-white transition-colors duration-200"
+                  >
+                    <MdCollections className="text-xl" />
+                    View Inventory
+                  </button>
+                  <button
+                    onClick={() => navigate(`/profile/${userData.userId}/wishlist`)}
+                    className="flex-1 flex items-center justify-center gap-2 px-6 py-2 rounded-lg bg-purple-500 hover:bg-purple-600 text-white transition-colors duration-200"
+                  >
+                    <MdStar className="text-xl" />
+                    View Wishlist
+                  </button>
+                </div>
               )}
             </div>
           </div>

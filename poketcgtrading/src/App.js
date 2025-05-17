@@ -17,6 +17,8 @@ import Footer from './components/Footer';
 import Set from './pages/explore/set';
 import AlertMenu from './components/AlertMenu';
 import Notifications from './pages/notifications/notifications';
+import UserInventory from './pages/profile/UserInventory';
+import UserWishlist from './pages/profile/UserWishlist';
 
 /**
 * This function allows one component to be rendered
@@ -67,6 +69,8 @@ function AppLayout() {
           <Route path="/profile/:userId" element={user ? <Profile /> : <Navigate to="/landing" />} />
           <Route path="/profile" element={user ? <Profile /> : <Navigate to="/landing" />} />
           <Route path="/notifications" element={user ? <Notifications /> : <Navigate to="/landing" />} />
+          <Route path="/profile/:userId/inventory" element={user ? <UserInventory /> : <Navigate to="/landing" />} />
+          <Route path="/profile/:userId/wishlist" element={user ? <UserWishlist /> : <Navigate to="/landing" />} />
           <Route path="/" element={<Navigate to="/landing" />} />
         </Routes>
       </main>
