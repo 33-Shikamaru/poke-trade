@@ -1,9 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { MdDarkMode, MdNotifications, MdEdit, MdPerson, MdSecurity, MdHelp, MdStar, MdStarHalf, MdStarBorder, MdPersonAdd, MdCollections, MdClose } from 'react-icons/md';
+import { MdNotifications, MdEdit, MdPerson, MdSecurity, MdHelp, MdStar, MdStarHalf, MdStarBorder, MdPersonAdd, MdCollections, MdClose, MdCloudUpload } from 'react-icons/md';
 import { doc, getDoc, updateDoc, arrayUnion, arrayRemove, collection, setDoc } from 'firebase/firestore';
-import { auth, db } from '../../firebase';
+import { auth, db, storage } from '../../firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import Gengar from '../../assets/gengar.png';
+import Avatar1 from '../../assets/avatars/avatar1.png';
+import Avatar2 from '../../assets/avatars/avatar2.png';
+import Avatar3 from '../../assets/avatars/avatar3.png';
+import Avatar4 from '../../assets/avatars/avatar4.png';
+import Avatar5 from '../../assets/avatars/avatar5.png';
+import Avatar6 from '../../assets/avatars/avatar6.png';
+import Avatar7 from '../../assets/avatars/avatar7.png';
+import Avatar8 from '../../assets/avatars/avatar8.png';
+import Avatar9 from '../../assets/avatars/avatar9.png';
 
 function Profile() {
   const navigate = useNavigate();
@@ -14,6 +24,11 @@ function Profile() {
   const [isFriend, setIsFriend] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isEditingPhoto, setIsEditingPhoto] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [selectedAvatar, setSelectedAvatar] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [editForm, setEditForm] = useState({
     displayName: '',
     age: '',
@@ -24,6 +39,19 @@ function Profile() {
     favoriteCard: ''
   });
   const isOwnProfile = !userId || userId === auth.currentUser?.uid;
+
+  const avatarOptions = [
+    { image: Avatar1, name: "avatar1" },
+    { image: Avatar2, name: "avatar2" },
+    { image: Avatar3, name: "avatar3" },
+    { image: Avatar4, name: "avatar4" },
+    { image: Avatar5, name: "avatar5" },
+    { image: Avatar6, name: "avatar6" },
+    { image: Avatar7, name: "avatar7" },
+    { image: Avatar8, name: "avatar8" },
+    { image: Avatar9, name: "avatar9" },
+    { image: null, name: "upload", isUpload: true }
+  ];
 
   console.log('Profile component rendered with userId:', userId);
   console.log('Current user:', auth.currentUser?.uid);
@@ -253,6 +281,122 @@ function Profile() {
     }
   };
 
+  const handleEditPhoto = () => {
+    setIsEditingPhoto(true);
+    setSelectedAvatar(null);
+    setSelectedFile(null);
+    setPreviewUrl(null);
+  };
+
+  const handleFileSelect = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      setSelectedAvatar(null);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAvatarSelect = (avatar, index) => {
+    if (avatar.isUpload) {
+      document.getElementById('avatar-upload').click();
+      return;
+    }
+    setSelectedAvatar(index);
+    setSelectedFile(null);
+    setPreviewUrl(null);
+  };
+
+  const handleSavePhoto = async () => {
+    try {
+      setIsSaving(true);
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      let downloadURL;
+
+      if (selectedFile) {
+        // Handle custom upload
+        const storageRef = ref(storage, `profile_photos/${user.uid}/${selectedFile.name}`);
+        await uploadBytes(storageRef, selectedFile);
+        downloadURL = await getDownloadURL(storageRef);
+      } else if (selectedAvatar !== null) {
+        // Handle predefined avatar
+        const avatar = avatarOptions[selectedAvatar];
+        // Store the avatar name in Firestore
+        downloadURL = `avatar:${avatar.name}`;
+      } else {
+        throw new Error("No avatar or file selected");
+      }
+
+      // Update the user document in Firestore
+      const userRef = doc(db, "users", user.uid);
+      await updateDoc(userRef, {
+        photoURL: downloadURL
+      });
+
+      // Update local state
+      setUserData(prev => ({
+        ...prev,
+        photoURL: downloadURL
+      }));
+      
+      setIsEditingPhoto(false);
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      setSelectedAvatar(null);
+    } catch (error) {
+      console.error("Error updating profile photo:", error);
+      setError(error.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancelPhotoEdit = () => {
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    setSelectedAvatar(null);
+    setIsEditingPhoto(false);
+  };
+
+  const renderAvatarPreview = () => {
+    if (previewUrl) {
+      return <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />;
+    }
+    if (selectedAvatar !== null) {
+      const avatar = avatarOptions[selectedAvatar];
+      if (avatar.isUpload) {
+        return (
+          <div className="w-full h-full flex items-center justify-center bg-gray-500 text-white">
+            <MdCloudUpload className="text-4xl" />
+          </div>
+        );
+      }
+      return <img src={avatar.image} alt={avatar.name} className="w-full h-full object-cover" />;
+    }
+    if (userData.photoURL.startsWith('avatar:')) {
+      const avatarName = userData.photoURL.split(':')[1];
+      const avatar = avatarOptions.find(opt => opt.name === avatarName);
+      if (avatar && !avatar.isUpload) {
+        return <img src={avatar.image} alt={avatar.name} className="w-full h-full object-cover" />;
+      }
+    }
+    return (
+      <img 
+        src={userData.photoURL} 
+        alt="Current" 
+        className="w-full h-full object-cover"
+      />
+    );
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex justify-center items-center">
@@ -293,14 +437,20 @@ function Profile() {
           {/* Profile Header */}
           <div className="flex flex-col md:flex-row items-center gap-6 mb-8 p-6 bg-white dark:bg-gray-700 rounded-lg">
             <div className="relative">
-              <img 
-                src={userData.photoURL || Gengar} 
-                alt="User Avatar" 
-                className='w-32 h-32 rounded-full object-cover'
-              />
+              {userData.photoURL.startsWith('avatar:') ? (
+                <div className="w-32 h-32 rounded-full overflow-hidden">
+                  {renderAvatarPreview()}
+                </div>
+              ) : (
+                <img 
+                  src={userData.photoURL || Gengar} 
+                  alt="User Avatar" 
+                  className='w-32 h-32 rounded-full object-cover'
+                />
+              )}
               {isOwnProfile && (
                 <button 
-                  onClick={handleEditClick}
+                  onClick={handleEditPhoto}
                   className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-colors"
                 >
                   <MdEdit className="text-xl" />
@@ -310,13 +460,24 @@ function Profile() {
             <div className="flex-1 text-center md:text-left">
               <div className="flex justify-between items-start">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
-                    {userData.displayName || userData.email}
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-300">User ID: {userData.userId}</p>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
+                      {userData.displayName || userData.email}
+                    </h2>
+                    {isOwnProfile && (
+                      <button 
+                        onClick={handleEditClick}
+                        className="bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition-colors flex items-center gap-1 text-sm"
+                      >
+                        <MdEdit className="text-lg" />
+                        <span>Edit</span>
+                      </button>
+                    )}
+                  </div>
                   <p className="text-gray-500 dark:text-gray-400 text-sm">
                     Joined on {userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : 'Unknown date'}
                   </p>
+                  <p className="text-gray-600 dark:text-gray-300">User ID: {userData.userId}</p>
                   {userData.age && (
                     <p className="text-gray-600 dark:text-gray-300 mt-1">
                       Age: {userData.age}
@@ -353,7 +514,7 @@ function Profile() {
                 </div>
               </div>
               <p className="text-gray-600 dark:text-gray-300 italic mt-2">
-                {userData.bio || 'No bio provided'}
+                <span className="font-bold">"{userData.bio || 'No bio provided'}"</span>
               </p>
               {!isOwnProfile && (
                 <div className="flex gap-2 w-full max-w-2xl">
@@ -537,6 +698,74 @@ function Profile() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Photo Edit Modal */}
+      {isEditingPhoto && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Choose Profile Picture</h3>
+              <button 
+                onClick={handleCancelPhotoEdit}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <MdClose className="text-xl" />
+              </button>
+            </div>
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-32 h-32 rounded-full overflow-hidden border-2 border-gray-300 dark:border-gray-600">
+                {renderAvatarPreview()}
+              </div>
+              <div className="grid grid-cols-5 gap-2 w-full">
+                {avatarOptions.map((avatar, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleAvatarSelect(avatar, index)}
+                    className={`aspect-square rounded-lg overflow-hidden hover:opacity-80 transition-opacity ${
+                      selectedAvatar === index ? 'ring-2 ring-blue-500 ring-offset-2' : ''
+                    }`}
+                  >
+                    {avatar.isUpload ? (
+                      <div className="w-full h-full bg-gray-500 flex items-center justify-center text-white">
+                        <MdCloudUpload className="text-2xl" />
+                      </div>
+                    ) : (
+                      <img 
+                        src={avatar.image} 
+                        alt={avatar.name} 
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                  </button>
+                ))}
+              </div>
+              <input
+                id="avatar-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <div className="flex justify-end gap-2 w-full mt-4">
+                <button
+                  onClick={handleCancelPhotoEdit}
+                  className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  disabled={isSaving}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSavePhoto}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50"
+                  disabled={isSaving || (selectedAvatar === null && !selectedFile)}
+                >
+                  {isSaving ? 'Saving...' : 'Save'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

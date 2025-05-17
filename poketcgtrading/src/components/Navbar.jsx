@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { TbBellRinging } from "react-icons/tb";
 import { FaRegUserCircle } from "react-icons/fa";
-import TCGLogo from "../assets/tcgLogo.png";
+import Logo from "../assets/PoketradeLogo.png";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { RxCross2 } from "react-icons/rx";
 import AlertMenu from './AlertMenu';
@@ -11,13 +11,36 @@ import UserMenu from './UserMenu';
 import { auth } from "../firebase";
 import { signOut } from "firebase/auth";
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+import Gengar from '../assets/gengar.png';
+import Avatar1 from '../assets/avatars/avatar1.png';
+import Avatar2 from '../assets/avatars/avatar2.png';
+import Avatar3 from '../assets/avatars/avatar3.png';
+import Avatar4 from '../assets/avatars/avatar4.png';
+import Avatar5 from '../assets/avatars/avatar5.png';
+import Avatar6 from '../assets/avatars/avatar6.png';
+import Avatar7 from '../assets/avatars/avatar7.png';
+import Avatar8 from '../assets/avatars/avatar8.png';
+import Avatar9 from '../assets/avatars/avatar9.png';
+
+const avatarOptions = [
+  { image: Avatar1, name: "avatar1" },
+  { image: Avatar2, name: "avatar2" },
+  { image: Avatar3, name: "avatar3" },
+  { image: Avatar4, name: "avatar4" },
+  { image: Avatar5, name: "avatar5" },
+  { image: Avatar6, name: "avatar6" },
+  { image: Avatar7, name: "avatar7" },
+  { image: Avatar8, name: "avatar8" },
+  { image: Avatar9, name: "avatar9" }
+];
 
 function Navbar() {
   const [user] = useAuthState(auth);
   const navigate = useNavigate();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [userData, setUserData] = useState(null);
   
   const location = useLocation();
   const isActive = (path) => location.pathname === path;
@@ -31,6 +54,25 @@ function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isAlertMenuOpen, setIsAlertMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user) return;
+      
+      try {
+        const userRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userRef);
+        
+        if (userDoc.exists()) {
+          setUserData(userDoc.data());
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    fetchUserData();
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
@@ -54,6 +96,32 @@ function Navbar() {
 
     return () => unsubscribe();
   }, [user]);
+
+  // Add listener for user data changes
+  useEffect(() => {
+    if (!user) return;
+
+    const userRef = doc(db, 'users', user.uid);
+    const unsubscribe = onSnapshot(userRef, (doc) => {
+      if (doc.exists()) {
+        setUserData(doc.data());
+      }
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  const renderAvatar = () => {
+    if (!userData?.photoURL) return Gengar;
+    
+    if (userData.photoURL.startsWith('avatar:')) {
+      const avatarName = userData.photoURL.split(':')[1];
+      const avatar = avatarOptions.find(opt => opt.name === avatarName);
+      return avatar ? avatar.image : Gengar;
+    }
+    
+    return userData.photoURL;
+  };
   
   const handleSignOut = async () => {
     try {
@@ -76,7 +144,7 @@ function Navbar() {
     <>
       <nav className='relative flex items-center justify-between border-b border-gray-400 dark:border-gray-700 px-4 py-2 bg-white dark:bg-gray-800 transition-colors duration-200'>
         {/* Logo */}
-        <img className='flex items-center' src={TCGLogo} width={80} alt='Poke Trader Logo' onClick={() => navigate('/explore')}/>
+        <img className='flex items-center' src={Logo} width={80} alt='Poke Trader Logo' onClick={() => navigate('/explore')}/>
 
         {/* Desktop Navigation */}
         <div className='hidden md:flex absolute left-1/2 transform -translate-x-1/2 space-x-6 text-center'>
@@ -110,7 +178,7 @@ function Navbar() {
           <button 
             className={`items-center rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-2xl p-2 text-gray-800 dark:text-gray-200 ${isActive('/profile') ? 'text-blue-400 dark:text-blue-300' : ''}`}
             onClick={displayUserMenu}>
-              <img src={user?.photoURL || 'https://api.dicebear.com/6.x/initials/svg?seed=' + user?.email} alt="User profile" className="w-8 h-8 rounded-full" />
+              <img src={renderAvatar()} alt="User profile" className="w-8 h-8 rounded-full object-cover" />
           </button>
           <Link 
           onClick={handleSignOut}
@@ -152,7 +220,9 @@ function Navbar() {
       {/* User Menu Overlay */}
       <UserMenu 
         isOpen={isUserMenuOpen} 
-        onClose={() => setIsUserMenuOpen(false)} 
+        onClose={() => setIsUserMenuOpen(false)}
+        userData={userData}
+        setUserData={setUserData}
       />
     </>
   );

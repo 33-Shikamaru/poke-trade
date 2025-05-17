@@ -224,9 +224,9 @@ function Explore() {
             </button>
           </form>
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">How the App Works:</h2>
-          <ol className="list-decimal pl-5 space-y-2 text-gray-600">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-300">How the App Works:</h2>
+          <ol className="list-decimal pl-5 space-y-2 text-gray-600 dark:text-gray-400">
             <li>Add cards to your inventory.</li>
             <li>Add cards to your wishlist.</li>
             <li>Browse other users who have the card you want.</li>
@@ -253,7 +253,7 @@ function Explore() {
               {cards.map((card) => (
                 <div
                   key={card.id}
-                  className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300 cursor-pointer"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300 cursor-pointer"
                   onClick={() => navigate(`/set/${card.set.id}`)}
                 >
                   <div className="aspect-w-16 aspect-h-9 bg-gray-100">
@@ -264,10 +264,10 @@ function Explore() {
                     />
                   </div>
                   <div className="p-4">
-                    <h2 className="text-lg font-semibold text-gray-900 truncate">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-300 truncate">
                       {card.name}
                     </h2>
-                    <p className="text-sm text-gray-600 mt-1">{card.set.name}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{card.set.name}</p>
                   </div>
                 </div>
               ))}
@@ -283,7 +283,7 @@ function Explore() {
               {filteredSets.map((set) => (
                 <div
                   key={set.id}
-                  className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300 cursor-pointer"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300 cursor-pointer"
                   onClick={() => navigate(`/set/${set.id}`)}
                 >
                   <div className="aspect-w-16 aspect-h-9 bg-gray-100">
@@ -294,10 +294,10 @@ function Explore() {
                     />
                   </div>
                   <div className="p-4">
-                    <h2 className="text-lg font-semibold text-gray-900 truncate">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-300 truncate">
                       {set.name}
                     </h2>
-                    <p className="text-sm text-gray-600 mt-1">{set.series}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{set.series}</p>
                   </div>
                 </div>
               ))}
