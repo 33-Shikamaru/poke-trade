@@ -3,6 +3,30 @@ import { useNavigate } from 'react-router-dom';
 import { MdDarkMode, MdNotifications } from "react-icons/md";
 import { IoClose } from "react-icons/io5";
 import Gengar from '../assets/gengar.png';
+import { auth } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase';
+import Avatar1 from '../assets/avatars/avatar1.png';
+import Avatar2 from '../assets/avatars/avatar2.png';
+import Avatar3 from '../assets/avatars/avatar3.png';
+import Avatar4 from '../assets/avatars/avatar4.png';
+import Avatar5 from '../assets/avatars/avatar5.png';
+import Avatar6 from '../assets/avatars/avatar6.png';
+import Avatar7 from '../assets/avatars/avatar7.png';
+import Avatar8 from '../assets/avatars/avatar8.png';
+import Avatar9 from '../assets/avatars/avatar9.png';
+
+const avatarOptions = [
+  { image: Avatar1, name: "avatar1" },
+  { image: Avatar2, name: "avatar2" },
+  { image: Avatar3, name: "avatar3" },
+  { image: Avatar4, name: "avatar4" },
+  { image: Avatar5, name: "avatar5" },
+  { image: Avatar6, name: "avatar6" },
+  { image: Avatar7, name: "avatar7" },
+  { image: Avatar8, name: "avatar8" },
+  { image: Avatar9, name: "avatar9" }
+];
 
 const ToggleSwitch = ({ isOn, handleToggle, icon, label }) => {
   return (
@@ -27,12 +51,10 @@ const ToggleSwitch = ({ isOn, handleToggle, icon, label }) => {
   );
 };
 
-const UserMenu = ({ isOpen, onClose }) => {
+const UserMenu = ({ isOpen, onClose, userData, setUserData }) => {
   const navigate = useNavigate();
   const [darkMode, setDarkMode] = useState(() => {
-    // Check if user has a saved preference
     const savedMode = localStorage.getItem('darkMode');
-    // Check if user's system prefers dark mode
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     return savedMode ? JSON.parse(savedMode) : prefersDark;
   });
@@ -45,7 +67,6 @@ const UserMenu = ({ isOpen, onClose }) => {
     } else {
       document.documentElement.classList.remove('dark');
     }
-    // Save preference to localStorage
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
   }, [darkMode]);
 
@@ -57,7 +78,18 @@ const UserMenu = ({ isOpen, onClose }) => {
 
   const handleNotificationsToggle = () => {
     setNotifications(!notifications);
-    // TODO: Implement notifications toggle logic
+  };
+
+  const renderAvatar = () => {
+    if (!userData?.photoURL) return Gengar;
+    
+    if (userData.photoURL.startsWith('avatar:')) {
+      const avatarName = userData.photoURL.split(':')[1];
+      const avatar = avatarOptions.find(opt => opt.name === avatarName);
+      return avatar ? avatar.image : Gengar;
+    }
+    
+    return userData.photoURL;
   };
 
   return (
@@ -84,14 +116,17 @@ const UserMenu = ({ isOpen, onClose }) => {
         
         <div className='flex justify-center border-b border-gray-200 dark:border-gray-700'>
           <div className='p-2 flex flex-col justify-center items-center text-center'>
-            <img src={Gengar} alt="User Avatar" className='w-16 h-16 rounded-full m-2' />
+            <img src={renderAvatar()} alt="User Avatar" className='w-16 h-16 rounded-full m-2 object-cover' />
             <div className='text-left dark:text-gray-200'>
-              {/* TODO: Remove this user template data and use the actual user data */}
-              <p className='text-sm'><span className='font-bold'>Username:</span> John Doe</p>
-              <p className='text-sm'><span className='font-bold'>User ID:</span> 1234-56-7890</p>
+              <p className='text-sm'><span className='font-bold'>Username:</span> {userData?.displayName || auth.currentUser?.displayName || 'User'}</p>
+              <p className='text-sm'><span className='font-bold'>User ID:</span> {auth.currentUser?.uid}</p>
             </div>
-              <p className='text-xs text-center text-gray-500 dark:text-gray-400'>Joined on 01/01/2021</p>
-              <p className='text-xs text-center mx-3 pt-2 italic dark:text-gray-300'>"Life is like a box of chocolates. You never know what you're gonna get."</p>
+            <p className='text-xs text-center text-gray-500 dark:text-gray-400'>
+              Joined on {userData?.createdAt ? new Date(userData.createdAt).toLocaleDateString() : 'Unknown date'}
+            </p>
+            <p className='text-xs text-center mx-3 pt-2 italic dark:text-gray-300'>
+              {userData?.bio || 'No bio provided'}
+            </p>
           </div>
         </div>
 
