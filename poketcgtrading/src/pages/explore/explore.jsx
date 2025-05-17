@@ -148,7 +148,7 @@ function Explore() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header and Search Section */}
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-          <h1 className="text-4xl font-bold text-gray-900">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-300">
             All the Sets of Cards
           </h1>
           <form onSubmit={handleSearch} className="flex gap-2 w-full sm:w-auto">

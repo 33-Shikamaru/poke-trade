@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { MdDarkMode, MdNotifications, MdEdit, MdPerson, MdSecurity, MdHelp, MdStar, MdStarHalf, MdStarBorder, MdPersonAdd, MdCollections } from 'react-icons/md';
+import { MdDarkMode, MdNotifications, MdEdit, MdPerson, MdSecurity, MdHelp, MdStar, MdStarHalf, MdStarBorder, MdPersonAdd, MdCollections, MdClose } from 'react-icons/md';
 import { doc, getDoc, updateDoc, arrayUnion, arrayRemove, collection, setDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
 import Gengar from '../../assets/gengar.png';
@@ -13,6 +13,16 @@ function Profile() {
   const [error, setError] = useState(null);
   const [isFriend, setIsFriend] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    displayName: '',
+    age: '',
+    friendCode: '',
+    bio: '',
+    location: '',
+    favoritePokemon: '',
+    favoriteCard: ''
+  });
   const isOwnProfile = !userId || userId === auth.currentUser?.uid;
 
   console.log('Profile component rendered with userId:', userId);
@@ -203,6 +213,46 @@ function Profile() {
     }
   ];
 
+  const handleEditClick = () => {
+    setEditForm({
+      displayName: userData.displayName || '',
+      age: userData.age || '',
+      friendCode: userData.friendCode || '',
+      bio: userData.bio || '',
+      location: userData.location || '',
+      favoritePokemon: userData.favoritePokemon || '',
+      favoriteCard: userData.favoriteCard || ''
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    if (!auth.currentUser) return;
+
+    setIsLoading(true);
+    try {
+      const userRef = doc(db, 'users', auth.currentUser.uid);
+      await updateDoc(userRef, {
+        ...editForm,
+        updatedAt: new Date()
+      });
+
+      // Update local state
+      setUserData(prev => ({
+        ...prev,
+        ...editForm
+      }));
+
+      setIsEditModalOpen(false);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      setError('Failed to update profile. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex justify-center items-center">
@@ -249,7 +299,10 @@ function Profile() {
                 className='w-32 h-32 rounded-full object-cover'
               />
               {isOwnProfile && (
-                <button className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-colors">
+                <button 
+                  onClick={handleEditClick}
+                  className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-colors"
+                >
                   <MdEdit className="text-xl" />
                 </button>
               )}
@@ -264,6 +317,31 @@ function Profile() {
                   <p className="text-gray-500 dark:text-gray-400 text-sm">
                     Joined on {userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : 'Unknown date'}
                   </p>
+                  {userData.age && (
+                    <p className="text-gray-600 dark:text-gray-300 mt-1">
+                      Age: {userData.age}
+                    </p>
+                  )}
+                  {userData.location && (
+                    <p className="text-gray-600 dark:text-gray-300 mt-1">
+                      Location: {userData.location}
+                    </p>
+                  )}
+                  {userData.friendCode && (
+                    <p className="text-gray-600 dark:text-gray-300 mt-1">
+                      TCGP Friend Code: {userData.friendCode}
+                    </p>
+                  )}
+                  {userData.favoritePokemon && (
+                    <p className="text-gray-600 dark:text-gray-300 mt-1">
+                      Favorite Pokemon: {userData.favoritePokemon}
+                    </p>
+                  )}
+                  {userData.favoriteCard && (
+                    <p className="text-gray-600 dark:text-gray-300 mt-1">
+                      Favorite Card: {userData.favoriteCard}
+                    </p>
+                  )}
                 </div>
                 <div className="flex flex-col items-center md:items-end">
                   <div className="flex">
@@ -361,6 +439,107 @@ function Profile() {
           )}
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Edit Profile</h2>
+              <button
+                onClick={() => setIsEditModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <MdClose className="text-2xl" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Display Name
+                </label>
+                <input
+                  type="text"
+                  value={editForm.displayName}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, displayName: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                  placeholder="Enter your display name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Age
+                </label>
+                <input
+                  type="number"
+                  value={editForm.age}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, age: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                  placeholder="Enter your age"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  TCG Pocket Friend Code
+                </label>
+                <input
+                  type="text"
+                  value={editForm.friendCode}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, friendCode: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                  placeholder="Enter your friend code"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  value={editForm.location}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, location: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                  placeholder="Enter your location"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Bio
+                </label>
+                <textarea
+                  value={editForm.bio}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, bio: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                  rows="3"
+                  placeholder="Tell us about yourself"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-blue-300"
+                >
+                  {isLoading ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
