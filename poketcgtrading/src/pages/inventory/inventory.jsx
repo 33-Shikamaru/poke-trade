@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { doc, getDoc, setDoc, getFirestore } from "firebase/firestore";
 import { auth } from "../../firebase";
-import { FaTrash, FaCheck, FaSearch, FaChevronDown } from "react-icons/fa";
+import { FaTrash, FaCheck, FaSearch, FaChevronDown, FaPlus } from "react-icons/fa";
 import { FcCancel } from "react-icons/fc";
 import Dropdown from "../../components/Dropdown";
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 
 function Inventory() {
   const [inventory, setInventory] = useState([]);
@@ -15,6 +15,7 @@ function Inventory() {
   const [searchType, setSearchType] = useState("all"); // "all", "card", "set"
   const [isSearchTypeOpen, setIsSearchTypeOpen] = useState(false);
   const db = getFirestore();
+  const navigate = useNavigate();
 
   const fetchInventory = async () => {
     try {
@@ -232,7 +233,7 @@ function Inventory() {
         </div>
         
         {filteredInventory.length === 0 ? (
-          <div className="text-center py-12 bg-gray-100">
+          <div className="text-center py-12">
             <p className="text-gray-600">
               {searchQuery ? 
                 `No cards found matching "${searchQuery}"` :
@@ -242,7 +243,7 @@ function Inventory() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 bg-gray-100 dark:bg-gray-800 p-2 rounded-xl">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 dark:bg-gray-800 p-2 rounded-xl">
             {filteredInventory.map((card) => (
               <div
               key={card.cardId}
@@ -305,6 +306,26 @@ function Inventory() {
                 </div>
               </div>
             ))}
+
+            {/* Add Cards Button */}
+            <div
+              onClick={() => navigate('/explore')}
+              className="bg-gray-100 dark:bg-gray-700 rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-500 hover:border-blue-500 dark:hover:border-blue-400 group hover:bg-blue-50 dark:hover:bg-blue-900/20"
+            >
+              <div className="w-full h-[200px] flex items-center justify-center">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <FaPlus className="text-2xl text-blue-500 dark:text-blue-400" />
+                  </div>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-300 text-center group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors duration-300">
+                    Add More Cards
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                    Browse and add to your collection
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
