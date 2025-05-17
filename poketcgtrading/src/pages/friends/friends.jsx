@@ -18,7 +18,6 @@ function Friends() {
 
         const userRef = doc(db, 'users', user.uid);
         const userDoc = await getDoc(userRef);
-
         if (!userDoc.exists()) {
           throw new Error('User not found');
         }

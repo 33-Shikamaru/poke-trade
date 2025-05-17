@@ -230,7 +230,7 @@ function Wishlist() {
 
         {/* Favorites Section */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-8 dark:text-gray-300">Favorite Cards</h1>
+          <h1 className="text-4xl font-bold mb-8 dark:text-gray-00">Favorite Cards</h1>
           <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 max-w-3xl mx-auto gap-7">
             {favorites.length > 0 ? (
               favorites.map(cardId => {

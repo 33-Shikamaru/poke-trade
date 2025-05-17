@@ -265,7 +265,7 @@ function Profile() {
                     Joined on {userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : 'Unknown date'}
                   </p>
                 </div>
-                <div className="flex flex-col items-end">
+                <div className="flex flex-col items-center md:items-end">
                   <div className="flex">
                     {renderStars(userData.rating || 0)}
                   </div>
