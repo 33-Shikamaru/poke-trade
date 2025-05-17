@@ -8,13 +8,17 @@ import Inventory from './pages/inventory/inventory';
 import Friends from './pages/friends/friends';
 import Trade from './pages/trade/trade';
 import Wishlist from './pages/wishlist/wishlist';
+import Search from './pages/search/search';
+import Profile from './pages/profile/profile';
 // import Signup from './pages/sign-in/signup';
-import Navbar from './components/Navbar';
+import Navbar from './components/navbar';
 import Explore from './pages/explore/explore';
 import Footer from './components/Footer';
 import Set from './pages/explore/set';
+import AlertMenu from './components/AlertMenu';
 import Notifications from './pages/notifications/notifications';
-import Profile from './pages/profile/profile';
+import UserInventory from './pages/profile/UserInventory';
+import UserWishlist from './pages/profile/UserWishlist';
 
 /**
 * This function allows one component to be rendered
@@ -39,7 +43,7 @@ function AppLayout() {
     return () => unsubscribe();
   }, []);
 
-  const hideNavbar = location.pathname === '/landing' || location.pathname === '/';
+  const hideNavbar = location.pathname === '/landing';
 
   if (loading) {
     return (
@@ -52,21 +56,23 @@ function AppLayout() {
   return (
     <>
       {!hideNavbar && <Navbar />}
-      <main className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-200 w-full overflow-x-hidden">
-       <div className="w-full max-w-7xl mx-auto px-4">
-         <Routes>
-           <Route path="/" element={<Landing />} />
-           <Route path="/landing" element={<Landing />} />
-           <Route path="/explore" element={<Explore />} />
-           <Route path="/set/:setId" element={<Set />} />
-           <Route path="/friends" element={<Friends />}/>
-           <Route path="/inventory" element={<Inventory />} />
-           <Route path="/trade" element={<Trade />} />
-           <Route path="/wishlist" element={<Wishlist />} />
-           <Route path="/notifications" element={<Notifications />} />
-           <Route path="/profile" element={<Profile />} />
-         </Routes>
-       </div>
+      <main className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-200">
+        <Routes>
+          <Route path="/landing" element={!user ? <Landing /> : <Navigate to="/explore" />} />
+          <Route path="/explore" element={user ? <Explore /> : <Navigate to="/landing" />} />
+          <Route path="/set/:setId" element={user ? <Set /> : <Navigate to="/landing" />} />
+          <Route path="/friends" element={user ? <Friends /> : <Navigate to="/landing" />} />
+          <Route path="/inventory" element={user ? <Inventory /> : <Navigate to="/landing" />} />
+          <Route path="/trade" element={user ? <Trade /> : <Navigate to="/landing" />} />
+          <Route path="/wishlist" element={user ? <Wishlist /> : <Navigate to="/landing" />} />
+          <Route path="/search" element={user ? <Search /> : <Navigate to="/landing" />} />
+          <Route path="/profile/:userId" element={user ? <Profile /> : <Navigate to="/landing" />} />
+          <Route path="/profile" element={user ? <Profile /> : <Navigate to="/landing" />} />
+          <Route path="/notifications" element={user ? <Notifications /> : <Navigate to="/landing" />} />
+          <Route path="/profile/:userId/inventory" element={user ? <UserInventory /> : <Navigate to="/landing" />} />
+          <Route path="/profile/:userId/wishlist" element={user ? <UserWishlist /> : <Navigate to="/landing" />} />
+          <Route path="/" element={<Navigate to="/landing" />} />
+        </Routes>
       </main>
     </>
   );
@@ -94,7 +100,7 @@ function App() {
 
   return (
     <Router>
-      <div className="App min-h-screen bg-white dark:bg-gray-900 dark:text-gray-200 transition-colors duration-200 w-full overflow-x-hidden">
+      <div className="App min-h-screen bg-white dark:bg-gray-900 dark:text-gray-200 transition-colors duration-200">
         <AppLayout />
         <Footer />
       </div>
