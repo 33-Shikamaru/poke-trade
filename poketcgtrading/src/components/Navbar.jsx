@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { TbBellRinging } from "react-icons/tb";
 import { FaRegUserCircle } from "react-icons/fa";
-import TCGLogo from "../assets/tcgLogo.png";
+import Logo from "../assets/PoketradeLogo.png";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { RxCross2 } from "react-icons/rx";
 import AlertMenu from './AlertMenu';
@@ -144,7 +144,7 @@ function Navbar() {
     <>
       <nav className='relative flex items-center justify-between border-b border-gray-400 dark:border-gray-700 px-4 py-2 bg-white dark:bg-gray-800 transition-colors duration-200'>
         {/* Logo */}
-        <img className='flex items-center' src={TCGLogo} width={80} alt='Poke Trader Logo' onClick={() => navigate('/explore')}/>
+        <img className='flex items-center' src={Logo} width={80} alt='Poke Trader Logo' onClick={() => navigate('/explore')}/>
 
         {/* Desktop Navigation */}
         <div className='hidden md:flex absolute left-1/2 transform -translate-x-1/2 space-x-6 text-center'>
