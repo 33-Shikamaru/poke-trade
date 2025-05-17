@@ -239,7 +239,7 @@ function Wishlist() {
                 return (
                   <div
                     key={cardId}
-                    className="shadow-[0_0_15px_2px_rgba(255,0,0,0.5)] bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 dark:bg-gray-600"
+                    className="shadow-[0_0_15px_2px_rgba(255,0,0,0.5)] bg-white rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 dark:bg-gray-600"
                   >
                     <img
                       src={card.image}
