@@ -91,13 +91,14 @@ function Profile() {
     
     setIsLoading(true);
     try {
-      // Create a notification for the friend request
-      const notificationRef = doc(collection(db, 'notifications'));
-      await setDoc(notificationRef, {
+      // Create a notification in the recipient's notifications subcollection
+      const recipientNotificationsRef = collection(db, 'users', userData.userId, 'notifications');
+      const newNotificationRef = doc(recipientNotificationsRef);
+      await setDoc(newNotificationRef, {
         type: 'friend_request',
         senderId: auth.currentUser.uid,
         senderName: auth.currentUser.displayName || auth.currentUser.email,
-        recipientId: userData.userId,
+        message: `${auth.currentUser.displayName || auth.currentUser.email} sent you a friend request`,
         timestamp: new Date(),
         read: false
       });

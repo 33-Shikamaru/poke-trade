@@ -11,10 +11,12 @@ import Wishlist from './pages/wishlist/wishlist';
 import Search from './pages/search/search';
 import Profile from './pages/profile/profile';
 // import Signup from './pages/sign-in/signup';
-import Navbar from './components/Navbar';
+import Navbar from './components/navbar';
 import Explore from './pages/explore/explore';
 import Footer from './components/Footer';
 import Set from './pages/explore/set';
+import AlertMenu from './components/AlertMenu';
+import Notifications from './pages/notifications/notifications';
 
 /**
 * This function allows one component to be rendered
@@ -64,6 +66,7 @@ function AppLayout() {
           <Route path="/search" element={user ? <Search /> : <Navigate to="/landing" />} />
           <Route path="/profile/:userId" element={user ? <Profile /> : <Navigate to="/landing" />} />
           <Route path="/profile" element={user ? <Profile /> : <Navigate to="/landing" />} />
+          <Route path="/notifications" element={user ? <Notifications /> : <Navigate to="/landing" />} />
           <Route path="/" element={<Navigate to="/landing" />} />
         </Routes>
       </main>

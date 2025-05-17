@@ -1,5 +1,5 @@
 import React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { TbBellRinging } from "react-icons/tb";
 import { FaRegUserCircle } from "react-icons/fa";
@@ -11,10 +11,13 @@ import UserMenu from './UserMenu';
 import { auth } from "../firebase";
 import { signOut } from "firebase/auth";
 import { useAuthState } from 'react-firebase-hooks/auth';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase';
 
 const Navbar = () => {
   const [user] = useAuthState(auth);
   const navigate = useNavigate();
+  const [unreadCount, setUnreadCount] = useState(0);
   
   const location = useLocation();
   const isActive = (path) => location.pathname === path;
@@ -28,6 +31,29 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isAlertMenuOpen, setIsAlertMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+
+    // Query for unread notifications in the user's notifications subcollection
+    const userNotificationsRef = collection(db, 'users', user.uid, 'notifications');
+    const q = query(
+      userNotificationsRef,
+      where('read', '==', false)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const count = snapshot.docs.filter(doc => {
+        const data = doc.data();
+        // Only count notifications that are not status updates
+        return !data.type?.includes('_accepted') && !data.type?.includes('_declined');
+      }).length;
+      console.log('Unread notifications count:', count);
+      setUnreadCount(count);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
   
   const handleSignOut = async () => {
     try {
@@ -72,9 +98,14 @@ const Navbar = () => {
         {/* Desktop Right Side Buttons */}
         <div className='hidden md:flex gap-2'>
           <button 
-            className={`items-center rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-2xl p-2 text-gray-800 dark:text-gray-200 ${isActive('/notifications') ? 'text-blue-400 dark:text-blue-300' : ''}`}
+            className={`items-center rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-2xl p-2 text-gray-800 dark:text-gray-200 relative ${isActive('/notifications') ? 'text-blue-400 dark:text-blue-300' : ''}`}
             onClick={displayAlertMenu}>
               <TbBellRinging />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {unreadCount}
+                </span>
+              )}
           </button>
           <button 
             className={`items-center rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-2xl p-2 text-gray-800 dark:text-gray-200 ${isActive('/profile') ? 'text-blue-400 dark:text-blue-300' : ''}`}
@@ -99,7 +130,14 @@ const Navbar = () => {
           <Link to='/friends' className={navClass('/friends')} onClick={() => setIsOpen(false)}>Friends</Link>
           <Link to='/trade' className={navClass('/trade')} onClick={() => setIsOpen(false)}>Trade</Link>
           <hr className="border-t border-gray-400 dark:border-gray-600 w-1/4" />
-          <Link to='/notifications' className={navClass('/notifications')} onClick={() => setIsOpen(false)}>Notifications</Link>
+          <Link to='/notifications' className={navClass('/notifications')} onClick={() => setIsOpen(false)}>
+            Notifications
+            {unreadCount > 0 && (
+              <span className="ml-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {unreadCount}
+              </span>
+            )}
+          </Link>
           <Link to='/profile' className={navClass('/profile')} onClick={() => setIsOpen(false)}>Profile</Link>
           <button onClick={handleSignOut} className='flex justify-content align-items text-center rounded-xl bg-black dark:bg-gray-700 text-white p-1 px-3 hover:bg-gray-500 dark:hover:bg-gray-600 text-sm transition-colors duration-200'>Sign Out</button>
         </div>
