@@ -278,6 +278,15 @@ function Trade() {
       // Delete from trades collection
       const tradeRef = doc(db, 'trades', trade.id);
       await deleteDoc(tradeRef);
+      // Delete associated chat
+      const chatsRef = collection(db, 'chats');
+      const chatQuery = query(chatsRef, where('tradeId', '==', trade.id));
+      const chatSnapshot = await getDocs(chatQuery);
+      
+      if (!chatSnapshot.empty) {
+        const chatDoc = chatSnapshot.docs[0];
+        await deleteDoc(chatDoc.ref);
+      }
 
       // Update local state
       setTrades(prev => prev.filter(t => t.id !== trade.id));
