@@ -65,6 +65,8 @@ const AlertMenu = ({ isOpen, onClose }) => {
     }
   };
 
+  // Fetch notifications whenever the AlertMenu is opened
+  // This ensures we always have fresh notifications data when the menu is visible
   useEffect(() => {
     if (isOpen) {
       console.log('AlertMenu opened, fetching notifications...');
