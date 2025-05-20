@@ -293,45 +293,47 @@ function Trade() {
   if (trades.length === 0) return <div className="text-center p-4">No trades found</div>;
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Your Trades</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {trades.map((trade) => (
-          <div key={trade.id} className="border rounded-lg p-4 bg-white dark:bg-gray-800 shadow relative group">
-            {/* Delete Button - Top Right */}
-            <button
-              onClick={() => handleDelete(trade)}
-              className="absolute top-2 right-2 p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-900 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-            >
-              <FaTrash />
-            </button>
-            <div className="flex flex-col">
-              {/* Trade Info List */}
-              <div className="mb-4 space-y-1">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Trade ID:</span>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">#{trade.id.slice(0, 8)}</span>
+    <div className="min-h-screen dark:bg-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-white">Your Trades</h1>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {trades.map((trade) => (
+            <div key={trade.id} className="border rounded-lg p-4 bg-white dark:bg-gray-800 shadow relative group">
+              {/* Delete Button - Top Right */}
+              <button
+                onClick={() => handleDelete(trade)}
+                className="absolute top-2 right-2 p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-900 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+              >
+                <FaTrash />
+              </button>
+              <div className="flex flex-col">
+                {/* Trade Info List */}
+                <div className="mb-4 space-y-1">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Trade ID:</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">#{trade.id.slice(0, 8)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Date:</span>
+                    <span className="text-sm text-gray-900 dark:text-white">{trade.createdAt?.toDate?.().toLocaleDateString() || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Status:</span>
+                    <span className="text-sm font-medium capitalize text-gray-900 dark:text-white">{trade.status}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">From:</span>
+                    <span className="text-sm text-gray-900 dark:text-white">{trade.sender?.displayName || trade.sender?.email || 'Unknown'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">To:</span>
+                    <span className="text-sm text-gray-900 dark:text-white">{trade.receiver?.displayName || trade.receiver?.email || 'Unknown'}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Date:</span>
-                  <span className="text-sm text-gray-900 dark:text-white">{trade.createdAt?.toDate?.().toLocaleDateString() || 'N/A'}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Status:</span>
-                  <span className="text-sm font-medium capitalize text-gray-900 dark:text-white">{trade.status}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">From:</span>
-                  <span className="text-sm text-gray-900 dark:text-white">{trade.sender?.displayName || trade.sender?.email || 'Unknown'}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">To:</span>
-                  <span className="text-sm text-gray-900 dark:text-white">{trade.receiver?.displayName || trade.receiver?.email || 'Unknown'}</span>
-                </div>
-              </div>
 
-              {/* Cards Section */}
-              <div className="flex justify-center gap-4 mb-4">
+                {/* Cards Section */}
+                <div className="flex justify-center gap-4 mb-4">
                   {/* Offered Card */}
                   <div className="flex flex-col items-center">
                     <div className="w-32 h-44 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
@@ -358,52 +360,37 @@ function Trade() {
                       {trade.isSender ? 'You receive' : 'You send'}
                     </p>
                   </div>
-              </div>
+                </div>
 
-              {/* Trade Info */}
-              <div className="text-center mb-4">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {trade.isSender 
-                    ? `You sent this offer to ${trade.otherUser?.displayName || trade.otherUser?.email || 'Unknown'}`
-                    : `You received this offer from ${trade.otherUser?.displayName || trade.otherUser?.email || 'Unknown'}`
-                  }
-                </p>
-              </div>
+                {/* Trade Info */}
+                <div className="text-center mb-4">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {trade.isSender 
+                      ? `You sent this offer to ${trade.otherUser?.displayName || trade.otherUser?.email || 'Unknown'}`
+                      : `You received this offer from ${trade.otherUser?.displayName || trade.otherUser?.email || 'Unknown'}`
+                    }
+                  </p>
+                </div>
 
-              {/* Action Buttons */}
-              <div className="flex justify-center gap-2">
-                {trade.status === 'pending' && !trade.isSender && (
-                  <>
-                    <button
-                      onClick={() => handleAccept(trade)}
-                      className="p-2 text-green-500 hover:bg-green-100 dark:hover:bg-green-900 rounded"
-                    >
-                      <FaCheck />
-                    </button>
-                    <button
-                      onClick={() => handleDecline(trade)}
-                      className="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900 rounded"
-                    >
-                      <FaTimes />
-                    </button>
-                  </>
-                )}
-                {trade.status === 'pending' && trade.isSender && (
-                  <>
-                  <button
-                  onClick={() => setExpandedChat(trade.id === expandedChat ? null : trade.id)}
-                  className={`p-2 text-blue-500 rounded ${
-                    trade.id === expandedChat 
-                      ? 'bg-blue-100 dark:bg-blue-900' 
-                      : 'hover:bg-blue-100 dark:hover:bg-blue-900'
-                  }`}
-                >
-                  <FaComments />
-                </button>
-                  </>
-                )}
-                {trade.status !== 'pending' && (
-                  <>
+                {/* Action Buttons */}
+                <div className="flex justify-center gap-2">
+                  {trade.status === 'pending' && !trade.isSender && (
+                    <>
+                      <button
+                        onClick={() => handleAccept(trade)}
+                        className="p-2 text-green-500 hover:bg-green-100 dark:hover:bg-green-900 rounded"
+                      >
+                        <FaCheck />
+                      </button>
+                      <button
+                        onClick={() => handleDecline(trade)}
+                        className="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900 rounded"
+                      >
+                        <FaTimes />
+                      </button>
+                    </>
+                  )}
+                  {trade.status === 'pending' && trade.isSender && (
                     <button
                       onClick={() => setExpandedChat(trade.id === expandedChat ? null : trade.id)}
                       className={`p-2 text-blue-500 rounded ${
@@ -414,21 +401,33 @@ function Trade() {
                     >
                       <FaComments />
                     </button>
-                  </>
+                  )}
+                  {trade.status !== 'pending' && (
+                    <button
+                      onClick={() => setExpandedChat(trade.id === expandedChat ? null : trade.id)}
+                      className={`p-2 text-blue-500 rounded ${
+                        trade.id === expandedChat 
+                          ? 'bg-blue-100 dark:bg-blue-900' 
+                          : 'hover:bg-blue-100 dark:hover:bg-blue-900'
+                      }`}
+                    >
+                      <FaComments />
+                    </button>
+                  )}
+                </div>
+
+                {/* Chat Section */}
+                {expandedChat === trade.id && (
+                  <div className="mt-4 border-t pt-4">
+                    <div className="h-[400px] overflow-hidden">
+                      <Chat tradeId={trade.id} otherUser={trade.otherUser} />
+                    </div>
+                  </div>
                 )}
               </div>
-
-              {/* Chat Section */}
-              {expandedChat === trade.id && (
-                <div className="mt-4 border-t pt-4">
-                  <div className="h-[400px] overflow-hidden">
-                    <Chat tradeId={trade.id} otherUser={trade.otherUser} />
-                  </div>
-                </div>
-              )}
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

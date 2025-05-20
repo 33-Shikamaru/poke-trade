@@ -91,14 +91,14 @@ function TradeOfferModal({ isOpen, onClose, targetCard, targetUser, onTrade }) {
             const fromUserRef = doc(db, 'users', user.uid);
             const toUserRef = doc(db, 'users', targetUser.userId);
 
-            // Initialize tradeList if it doesn't exist
-            await setDoc(fromUserRef, {
-                tradeList: [tradeRef.id]
-            }, { merge: true });
+            // Add new trade ID to existing tradeList array
+            await updateDoc(fromUserRef, {
+                tradeList: arrayUnion(tradeRef.id)
+            });
 
-            await setDoc(toUserRef, {
-                tradeList: [tradeRef.id]
-            }, { merge: true });
+            await updateDoc(toUserRef, {
+                tradeList: arrayUnion(tradeRef.id)
+            });
 
             onClose();
         } catch (error) {
@@ -391,14 +391,14 @@ function Search() {
             const fromUserRef = doc(db, 'users', user.uid);
             const toUserRef = doc(db, 'users', selectedUser.userId);
 
-            // Initialize tradeList if it doesn't exist
-            await setDoc(fromUserRef, {
-                tradeList: [tradeRef.id]
-            }, { merge: true });
+            // Add new trade ID to existing tradeList array
+            await updateDoc(fromUserRef, {
+                tradeList: arrayUnion(tradeRef.id)
+            });
 
-            await setDoc(toUserRef, {
-                tradeList: [tradeRef.id]
-            }, { merge: true });
+            await updateDoc(toUserRef, {
+                tradeList: arrayUnion(tradeRef.id)
+            });
 
             setSelectedCard(null);
             setSelectedUser(null);
