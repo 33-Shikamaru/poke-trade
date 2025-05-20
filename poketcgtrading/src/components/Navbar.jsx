@@ -84,17 +84,33 @@ function Navbar() {
       where('read', '==', false)
     );
 
+    let isFirstLoad = true;
+    
     const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (isFirstLoad) {
+        console.log('Initial notifications load, total docs:', snapshot.docs.length);
+        isFirstLoad = false;
+      }
+      
       const count = snapshot.docs.filter(doc => {
         const data = doc.data();
-        // Only count notifications that are not status updates
-        return !data.type?.includes('_accepted') && !data.type?.includes('_declined');
+        return !data.type?.includes('_accepted') && 
+               !data.type?.includes('_declined') && 
+               data.type !== 'message' &&
+               !data.type?.includes('message');
       }).length;
-      console.log('Unread notifications count:', count);
-      setUnreadCount(count);
+      
+      if (count !== unreadCount) {
+        console.log('Unread count updated:', count);
+        setUnreadCount(count);
+      }
+    }, (error) => {
+      console.error('Error in notifications listener:', error);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+    };
   }, [user]);
 
   // Add listener for user data changes

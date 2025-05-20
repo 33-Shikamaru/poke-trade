@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, setDoc, updateDoc, arrayUnion, serverTimestamp } from 'firebase/firestore';
 import { FaSearch, FaTimes, FaExchangeAlt } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth, db } from '../../firebase';
@@ -55,9 +55,56 @@ function TradeOfferModal({ isOpen, onClose, targetCard, targetUser, onTrade }) {
         });
     };
 
-    const handleTrade = () => {
-        onTrade(targetCard, selectedCards);
-        onClose();
+    const handleTrade = async () => {
+        try {
+            const user = auth.currentUser;
+            if (!user) return;
+
+            // Create trade document in trades collection
+            const tradeRef = doc(collection(db, 'trades'));
+            const tradeData = {
+                fromUser: user.uid,
+                toUser: targetUser.userId,
+                targetCard: {
+                    cardId: targetCard.cardId,
+                    name: targetCard.name,
+                    image: targetCard.image,
+                    setId: targetCard.setId,
+                    setName: targetCard.setName,
+                    quantity: targetCard.quantity
+                },
+                offeredCards: selectedCards.map(card => ({
+                    cardId: card.cardId,
+                    name: card.name,
+                    image: card.image,
+                    setId: card.setId,
+                    setName: card.setName,
+                    quantity: card.quantity
+                })),
+                status: 'pending',
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            };
+            await setDoc(tradeRef, { ...tradeData, id: tradeRef.id });
+
+            // Add trade reference to both users' tradeList array
+            const fromUserRef = doc(db, 'users', user.uid);
+            const toUserRef = doc(db, 'users', targetUser.userId);
+
+            // Add new trade ID to existing tradeList array
+            await updateDoc(fromUserRef, {
+                tradeList: arrayUnion(tradeRef.id)
+            });
+
+            await updateDoc(toUserRef, {
+                tradeList: arrayUnion(tradeRef.id)
+            });
+
+            onClose();
+        } catch (error) {
+            console.error('Error creating trade:', error);
+            alert('Failed to create trade. Please try again.');
+        }
     };
 
     if (!isOpen) return null;
@@ -310,20 +357,54 @@ function Search() {
 
     const handleTrade = async (targetCard, offeredCards) => {
         try {
-            // Here you would implement the trade offer logic
-            // For example, creating a new trade offer in Firestore
-            console.log('Trade offer:', {
-                targetCard,
-                offeredCards,
-                fromUser: auth.currentUser.uid,
-                toUser: selectedUser.userId
+            const user = auth.currentUser;
+            if (!user) return;
+
+            // Create trade document in trades collection
+            const tradeRef = doc(collection(db, 'trades'));
+            const tradeData = {
+                fromUser: user.uid,
+                toUser: selectedUser.userId,
+                targetCard: {
+                    cardId: targetCard.cardId,
+                    name: targetCard.name,
+                    image: targetCard.image,
+                    setId: targetCard.setId,
+                    setName: targetCard.setName,
+                    quantity: targetCard.quantity
+                },
+                offeredCards: offeredCards.map(card => ({
+                    cardId: card.cardId,
+                    name: card.name,
+                    image: card.image,
+                    setId: card.setId,
+                    setName: card.setName,
+                    quantity: card.quantity
+                })),
+                status: 'pending',
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            };
+            await setDoc(tradeRef, { ...tradeData, id: tradeRef.id });
+
+            // Add trade reference to both users' tradeList array
+            const fromUserRef = doc(db, 'users', user.uid);
+            const toUserRef = doc(db, 'users', selectedUser.userId);
+
+            // Add new trade ID to existing tradeList array
+            await updateDoc(fromUserRef, {
+                tradeList: arrayUnion(tradeRef.id)
             });
-            
-            // TODO: Implement trade offer creation in Firestore
-            alert('Trade offer sent successfully!');
+
+            await updateDoc(toUserRef, {
+                tradeList: arrayUnion(tradeRef.id)
+            });
+
+            setSelectedCard(null);
+            setSelectedUser(null);
         } catch (error) {
-            console.error('Error creating trade offer:', error);
-            alert('Failed to send trade offer. Please try again.');
+            console.error('Error creating trade:', error);
+            alert('Failed to create trade. Please try again.');
         }
     };
 
