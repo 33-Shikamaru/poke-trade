@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IoClose } from "react-icons/io5";
-import { MdSwapHoriz, MdPeople, MdMessage, MdCheck, MdClose } from "react-icons/md";
+import { MdSwapHoriz, MdPeople, MdCheck, MdClose } from "react-icons/md";
 import { doc, collection, query, where, orderBy, limit, getDocs, updateDoc, deleteDoc, arrayUnion, setDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 
@@ -27,6 +27,7 @@ const AlertMenu = ({ isOpen, onClose }) => {
       // Get all notifications for the current user
       const querySnapshot = await getDocs(userNotificationsRef);
       console.log('Query snapshot size:', querySnapshot.size);
+      console.log('Raw query snapshot:', querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       
       if (querySnapshot.empty) {
         console.log('No notifications found');
@@ -166,8 +167,6 @@ const AlertMenu = ({ isOpen, onClose }) => {
       case 'friend_request_accepted':
       case 'friend_request_declined':
         return <MdPeople className="text-green-500 dark:text-green-400 text-xl" />;
-      case 'message':
-        return <MdMessage className="text-purple-500 dark:text-purple-400 text-xl" />;
       default:
         return null;
     }
@@ -183,8 +182,6 @@ const AlertMenu = ({ isOpen, onClose }) => {
         return 'Friend Request Accepted';
       case 'friend_request_declined':
         return 'Friend Request Declined';
-      case 'message':
-        return 'New Message';
       default:
         return 'Notification';
     }

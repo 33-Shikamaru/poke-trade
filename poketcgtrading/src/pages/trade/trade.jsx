@@ -22,7 +22,9 @@ function Trade() {
           const userData = userDoc.data();
           // Check both tradeList and trades fields
           const tradeIds = userData.tradeList || userData.trades || [];
+          console.log("trade list", tradeIds)
           
+          // When the user has not had any trade
           if (tradeIds.length === 0) {
             setTrades([]);
             setLoading(false);
@@ -46,11 +48,17 @@ function Trade() {
                     ...otherUserDoc.data(),
                     uid: otherUserId
                   } : null;
+
+                  // Determine if current user is sender or receiver
+                  const isSender = tradeData.fromUser === auth.currentUser.uid;
                   
                   return {
                     id: tradeId,
                     ...tradeData,
-                    otherUser: otherUserData
+                    otherUser: otherUserData,
+                    isSender,
+                    sender: isSender ? auth.currentUser : otherUserData,
+                    receiver: isSender ? otherUserData : auth.currentUser
                   };
                 }
                 return null;
@@ -256,24 +264,72 @@ function Trade() {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Your Trades</h1>
-      <div className="grid gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {trades.map((trade) => (
           <div key={trade.id} className="border rounded-lg p-4 bg-white dark:bg-gray-800 shadow">
-            <div className="flex justify-between items-start">
-              <div>
-                <h2 className="text-lg font-semibold">
-                  {trade.targetCard.name}
-                </h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {trade.fromUser === auth.currentUser.uid ? 'You offered to' : 'You received an offer to'} trade with{' '}
-                  {trade.otherUser?.displayName || trade.otherUser?.email || 'Unknown User'}
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex flex-col">
+              {/* Trade Status and Users */}
+              <div className="text-center mb-4">
+                <div className="flex justify-between items-center mb-2">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    From: {trade.sender?.displayName || trade.sender?.email || 'Unknown'}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    To: {trade.receiver?.displayName || trade.receiver?.email || 'Unknown'}
+                  </div>
+                </div>
+                <p className="text-sm font-semibold">
                   Status: <span className="capitalize">{trade.status}</span>
                 </p>
               </div>
-              <div className="flex gap-2">
-                {trade.status === 'pending' && trade.fromUser !== auth.currentUser.uid && (
+
+              {/* Cards Section */}
+              <div className="flex justify-center gap-4 mb-4">
+                {/* Target Card */}
+                <div className="flex flex-col items-center">
+                  <div className="w-32 h-44 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
+                    <img 
+                      src={trade.targetCard?.image || 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png'} 
+                      alt={trade.targetCard?.name || 'Target Card'}
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                    {trade.isSender ? 'You receive' : 'You send'}
+                  </p>
+                </div>
+                
+                {/* Offered Card */}
+                <div className="flex flex-col items-center">
+                  <div className="w-32 h-44 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
+                    <img 
+                      src={trade.offeredCards[0]?.image || 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png'} 
+                      alt={trade.offeredCards[0]?.name || 'Offered Card'}
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                    {trade.isSender ? 'You send' : 'You receive'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Trade Info */}
+              <div className="text-center mb-4">
+                <h2 className="text-lg font-semibold">
+                  {trade.targetCard?.name || 'Trade Offer'}
+                </h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {trade.isSender 
+                    ? `You sent this offer to ${trade.otherUser?.displayName || trade.otherUser?.email || 'Unknown'}`
+                    : `You received this offer from ${trade.otherUser?.displayName || trade.otherUser?.email || 'Unknown'}`
+                  }
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-center gap-2">
+                {trade.status === 'pending' && !trade.isSender && (
                   <>
                     <button
                       onClick={() => handleAccept(trade)}
@@ -289,7 +345,7 @@ function Trade() {
                     </button>
                   </>
                 )}
-                {trade.status === 'pending' && trade.fromUser === auth.currentUser.uid && (
+                {trade.status === 'pending' && trade.isSender && (
                   <button
                     onClick={() => handleCancel(trade)}
                     className="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900 rounded"
@@ -306,12 +362,16 @@ function Trade() {
                   </button>
                 )}
               </div>
+
+              {/* Chat Section */}
+              {expandedChat === trade.id && (
+                <div className="mt-4 border-t pt-4">
+                  <div className="h-[400px] overflow-hidden">
+                    <Chat tradeId={trade.id} otherUser={trade.otherUser} />
+                  </div>
+                </div>
+              )}
             </div>
-            {expandedChat === trade.id && (
-              <div className="mt-4 border-t pt-4">
-                <Chat tradeId={trade.id} otherUser={trade.otherUser} />
-              </div>
-            )}
           </div>
         ))}
       </div>

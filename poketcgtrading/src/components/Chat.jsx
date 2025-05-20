@@ -170,7 +170,7 @@ function Chat({ tradeId, otherUser }) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
         {loadingMore && (
           <div className="text-center">
             <button 
@@ -201,7 +201,7 @@ function Chat({ tradeId, otherUser }) {
         )}
         <div ref={messagesEndRef} />
       </div>
-      <div className="p-4 border-t">
+      <div className="p-4 border-t bg-white dark:bg-gray-800">
         <form 
           onSubmit={handleSendMessage}
           className="flex gap-2"
@@ -211,7 +211,7 @@ function Chat({ tradeId, otherUser }) {
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type your message..."
-            className="flex-1 border rounded p-2"
+            className="flex-1 border rounded p-2 bg-white dark:bg-gray-700 dark:text-white"
           />
           <button 
             type="submit"
