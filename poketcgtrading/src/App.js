@@ -100,6 +100,7 @@ function App() {
 
   return (
     <Router>
+      <title>PokéTrade</title>
       <div className="App min-h-screen bg-white dark:bg-gray-900 dark:text-gray-200 transition-colors duration-200">
         <AppLayout />
         <Footer />

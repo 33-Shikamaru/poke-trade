@@ -160,7 +160,7 @@ function Navbar() {
     <>
       <nav className='relative flex items-center justify-between border-b border-gray-400 dark:border-gray-700 px-4 py-2 bg-white dark:bg-gray-800 transition-colors duration-200'>
         {/* Logo */}
-        <img className='flex items-center' src={Logo} width={80} alt='Poke Trader Logo' onClick={() => navigate('/explore')}/>
+        <img className='flex items-center hover:bg-gray-200 rounded' src={Logo} width={80} alt='Poke Trader Logo' onClick={() => navigate('/explore')}/>
 
         {/* Desktop Navigation */}
         <div className='hidden md:flex absolute left-1/2 transform -translate-x-1/2 space-x-6 text-center'>
