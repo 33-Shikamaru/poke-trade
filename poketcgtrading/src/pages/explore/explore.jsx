@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../../firebase";
-import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { doc, getDoc, updateDoc, arrayUnion, setDoc } from "firebase/firestore";
 import { FaSearch, FaChevronDown } from "react-icons/fa";
 import { MdCollections, MdStar } from "react-icons/md";
 
@@ -155,106 +155,119 @@ function Explore() {
 
   // Function to handle adding cards to inventory
   const handleAddToInventory = async (card) => {
-    if (!auth.currentUser) {
-      navigate('/login');
-      return;
-    }
-
-    const quantity = quantities[card.id] || 0;
-    if (quantity === 0) {
-      alert('Please select a quantity greater than 0');
-      return;
-    }
-
     try {
-      const userRef = doc(db, 'users', auth.currentUser.uid);
-      const userDoc = await getDoc(userRef);
-      
-      if (!userDoc.exists()) {
-        throw new Error('User not found');
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error("User not authenticated");
       }
 
-      const userData = userDoc.data();
-      const inventory = userData.inventory || [];
-
-      // Check if card is already in inventory
-      const existingCardIndex = inventory.findIndex(item => item.id === card.id);
-      if (existingCardIndex !== -1) {
-        // Update quantity if card exists
-        inventory[existingCardIndex].quantity = (inventory[existingCardIndex].quantity || 0) + quantity;
-        await updateDoc(userRef, { inventory });
-      } else {
-        // Add new card with quantity
-        await updateDoc(userRef, {
-          inventory: arrayUnion({
-            id: card.id,
-            name: card.name,
-            images: card.images,
-            set: card.set,
-            rarity: card.rarity,
-            quantity: quantity,
-            addedAt: new Date()
-          })
-        });
+      const quantity = quantities[card.id] || 0;
+      if (quantity === 0) {
+        alert('Please select a quantity greater than 0');
+        return;
       }
+
+      const userRef = doc(db, "users", user.uid);
+
+      // Get current data
+      const userSnap = await getDoc(userRef);
+      const currentData = userSnap.exists() ? userSnap.data() : {};
+      const existingInventory = currentData.inventory || [];
+
+      // Create maps for fast lookup
+      const inventoryMap = new Map();
+
+      // Add existing cards to maps
+      existingInventory.forEach(card => {
+        inventoryMap.set(card.cardId, { ...card });
+      });
+
+      // Create new card data
+      const cardData = {
+        cardId: card.id,
+        name: card.name,
+        image: card.images.small,
+        quantity: quantity,
+        setId: card.set.id,
+        setName: card.set.name
+      };
+
+      // Add or update card in inventory
+      inventoryMap.set(card.id, cardData);
+
+      // Convert map back to array
+      const mergedInventory = Array.from(inventoryMap.values());
+
+      // Save to Firestore
+      await setDoc(userRef, {
+        inventory: mergedInventory
+      }, { merge: true });
 
       alert('Cards added to inventory!');
       setQuantities(prev => ({ ...prev, [card.id]: 0 })); // Reset quantity after adding
     } catch (error) {
-      console.error('Error adding card to inventory:', error);
+      console.error("Error adding card to inventory:", error);
       alert('Failed to add card to inventory. Please try again.');
     }
   };
 
   // Function to handle adding cards to wishlist
   const handleAddToWishlist = async (card) => {
-    if (!auth.currentUser) {
-      navigate('/login');
-      return;
-    }
-
-    const quantity = quantities[card.id] || 0;
-    if (quantity === 0) {
-      alert('Please select a quantity greater than 0');
-      return;
-    }
-
     try {
-      const userRef = doc(db, 'users', auth.currentUser.uid);
-      const userDoc = await getDoc(userRef);
-      
-      if (!userDoc.exists()) {
-        throw new Error('User not found');
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error("User not authenticated");
       }
 
-      const userData = userDoc.data();
-      const wishlist = userData.wishList?.cards || [];
-
-      // Check if card is already in wishlist
-      const existingCardIndex = wishlist.findIndex(item => item.id === card.id);
-      if (existingCardIndex !== -1) {
-        // Update quantity if card exists
-        wishlist[existingCardIndex].quantity = (wishlist[existingCardIndex].quantity || 0) + quantity;
-        await updateDoc(userRef, { 'wishList.cards': wishlist });
-      } else {
-        // Add new card with quantity
-        await updateDoc(userRef, {
-          'wishList.cards': arrayUnion({
-            id: card.id,
-            name: card.name,
-            images: card.images,
-            set: card.set,
-            rarity: card.rarity,
-            quantity: quantity,
-            addedAt: new Date()
-          })
-        });
+      const quantity = quantities[card.id] || 0;
+      if (quantity === 0) {
+        alert('Please select a quantity greater than 0');
+        return;
       }
+
+      const userRef = doc(db, "users", user.uid);
+
+      // Get current data
+      const userSnap = await getDoc(userRef);
+      const currentData = userSnap.exists() ? userSnap.data() : {};
+      const existingWishlist = currentData.wishList?.cards || [];
+
+      // Create maps for fast lookup
+      const wishlistMap = new Map();
+
+      // Add existing cards to maps
+      existingWishlist.forEach(card => {
+        wishlistMap.set(card.cardId, { ...card });
+      });
+
+      // Create new card data
+      const cardData = {
+        cardId: card.id,
+        name: card.name,
+        image: card.images.small,
+        quantity: quantity,
+        setId: card.set.id,
+        setName: card.set.name
+      };
+
+      // Add or update card in wishlist
+      wishlistMap.set(card.id, cardData);
+
+      // Convert map back to array
+      const mergedWishlist = Array.from(wishlistMap.values());
+
+      // Save to Firestore
+      await setDoc(userRef, {
+        wishList: {
+          cards: mergedWishlist,
+          favorites: currentData.wishList?.favorites || []
+        }
+      }, { merge: true });
 
       alert('Cards added to wishlist!');
       setQuantities(prev => ({ ...prev, [card.id]: 0 })); // Reset quantity after adding
     } catch (error) {
-      console.error('Error adding card to wishlist:', error);
+      console.error("Error adding card to wishlist:", error);
       alert('Failed to add card to wishlist. Please try again.');
     }
   };
