@@ -105,7 +105,7 @@ function Friends() {
       if (potentialUsers.length === 0) { 
         const usersCollectionRef = collection(db, 'users');
         const q = query(usersCollectionRef);
-        const querySnapshot = await getDoc(q); 
+        const querySnapshot = await getDocs(q); 
         querySnapshot.forEach((docSnap) => {
             const userData = docSnap.data();
             if (
