@@ -3,6 +3,27 @@ import { useNavigate } from 'react-router-dom';
 import { doc, getDoc, getDocs, collection } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
 import Gengar from '../../assets/gengar.png';
+import Avatar1 from '../../assets/avatars/avatar1.png';
+import Avatar2 from '../../assets/avatars/avatar2.png';
+import Avatar3 from '../../assets/avatars/avatar3.png';
+import Avatar4 from '../../assets/avatars/avatar4.png';
+import Avatar5 from '../../assets/avatars/avatar5.png';
+import Avatar6 from '../../assets/avatars/avatar6.png';
+import Avatar7 from '../../assets/avatars/avatar7.png';
+import Avatar8 from '../../assets/avatars/avatar8.png';
+import Avatar9 from '../../assets/avatars/avatar9.png';
+
+const avatarOptions = [
+  { image: Avatar1, name: "avatar1" },
+  { image: Avatar2, name: "avatar2" },
+  { image: Avatar3, name: "avatar3" },
+  { image: Avatar4, name: "avatar4" },
+  { image: Avatar5, name: "avatar5" },
+  { image: Avatar6, name: "avatar6" },
+  { image: Avatar7, name: "avatar7" },
+  { image: Avatar8, name: "avatar8" },
+  { image: Avatar9, name: "avatar9" }
+];
 
 function Friends() {
   const navigate = useNavigate();
@@ -62,6 +83,20 @@ function Friends() {
     fetchFriends();
   }, []);
 
+  const renderAvatar = (friend) => {
+    if (!friend?.photoURL) {
+      return Gengar;
+      console.log("The first one");
+    }
+    if (friend.photoURL.startsWith('avatar:')) {
+      const avatarName = friend.photoURL.split(':')[1];
+      const avatar = avatarOptions.find(opt => opt.name === avatarName);
+      return avatar ? avatar.image : Gengar;
+    }
+    
+    return friend.photoURL;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex justify-center items-center">
@@ -102,7 +137,7 @@ function Friends() {
               >
                 <div className="flex items-center space-x-4">
                   <img
-                    src={friend.photoURL || Gengar}
+                    src={renderAvatar(friend)}
                     alt={friend.displayName}
                     className="w-16 h-16 rounded-full object-cover"
                   />
