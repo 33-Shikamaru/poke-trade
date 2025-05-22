@@ -428,9 +428,9 @@ function Profile() {
   }
 
   return (
-    <div className='min-h-screen'>
-      <div className='w-full max-w-lg mx-5 my-5'>
-        <h1 className='text-4xl font-bold pb-5'>{isOwnProfile ? 'My Profile' : 'User Profile'}</h1>
+    <div className="min-h-screen dark:bg-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-white">{userData.displayName}'s Profile</h1>
       </div>
       <div className="w-full min-h-screen p-4 flex justify-center items-start">
         <div className="w-full max-w-3xl bg-gray-100 dark:bg-gray-800 rounded-xl p-4 md:p-8 shadow-md">
@@ -474,15 +474,15 @@ function Profile() {
                       </button>
                     )}
                   </div>
-                  <p className="text-gray-500 dark:text-gray-400 text-sm">
+                  <p className="text-gray-500 mb-2 dark:text-gray-400 text-sm">
                     Joined on {userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : 'Unknown date'}
                   </p>
-                  <p className="text-gray-600 dark:text-gray-300">User ID: {userData.userId}</p>
-                  {userData.age && (
+                  <p className="text-gray-600 dark:text-gray-300">User ID: {userData.userId?.substring(0, 10)}</p>
+                  {/* {userData.age && (
                     <p className="text-gray-600 dark:text-gray-300 mt-1">
                       Age: {userData.age}
                     </p>
-                  )}
+                  )} */}
                   {userData.location && (
                     <p className="text-gray-600 dark:text-gray-300 mt-1">
                       Location: {userData.location}
@@ -513,7 +513,7 @@ function Profile() {
                   </span>
                 </div>
               </div>
-              <p className="text-gray-600 dark:text-gray-300 italic mt-2">
+              <p className="text-gray-600 dark:text-gray-300 italic my-2">
                 <span className="font-bold">"{userData.bio || 'No bio provided'}"</span>
               </p>
               {!isOwnProfile && (

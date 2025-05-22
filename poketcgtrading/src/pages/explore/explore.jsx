@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../../firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "../../firebase";
+import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { FaSearch, FaChevronDown } from "react-icons/fa";
+import { MdCollections, MdStar } from "react-icons/md";
 
 function Explore() {
   const navigate = useNavigate();
@@ -16,6 +17,15 @@ function Explore() {
   const [tempSearchQuery, setTempSearchQuery] = useState("");
   const [searchType, setSearchType] = useState("all"); // "all", "card", "set"
   const [isSearchTypeOpen, setIsSearchTypeOpen] = useState(false);
+  const [quantities, setQuantities] = useState({});
+
+  // Function to update quantity
+  const updateQuantity = (cardId, change) => {
+    setQuantities(prev => ({
+      ...prev,
+      [cardId]: Math.max(0, (prev[cardId] || 0) + change)
+    }));
+  };
 
   // Handle search submission
   const handleSearch = (e) => {
@@ -143,6 +153,112 @@ function Explore() {
     fetchSetsBySearch();
   }, [searchQuery, searchType, sets]);
 
+  // Function to handle adding cards to inventory
+  const handleAddToInventory = async (card) => {
+    if (!auth.currentUser) {
+      navigate('/login');
+      return;
+    }
+
+    const quantity = quantities[card.id] || 0;
+    if (quantity === 0) {
+      alert('Please select a quantity greater than 0');
+      return;
+    }
+
+    try {
+      const userRef = doc(db, 'users', auth.currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      
+      if (!userDoc.exists()) {
+        throw new Error('User not found');
+      }
+
+      const userData = userDoc.data();
+      const inventory = userData.inventory || [];
+
+      // Check if card is already in inventory
+      const existingCardIndex = inventory.findIndex(item => item.id === card.id);
+      if (existingCardIndex !== -1) {
+        // Update quantity if card exists
+        inventory[existingCardIndex].quantity = (inventory[existingCardIndex].quantity || 0) + quantity;
+        await updateDoc(userRef, { inventory });
+      } else {
+        // Add new card with quantity
+        await updateDoc(userRef, {
+          inventory: arrayUnion({
+            id: card.id,
+            name: card.name,
+            images: card.images,
+            set: card.set,
+            rarity: card.rarity,
+            quantity: quantity,
+            addedAt: new Date()
+          })
+        });
+      }
+
+      alert('Cards added to inventory!');
+      setQuantities(prev => ({ ...prev, [card.id]: 0 })); // Reset quantity after adding
+    } catch (error) {
+      console.error('Error adding card to inventory:', error);
+      alert('Failed to add card to inventory. Please try again.');
+    }
+  };
+
+  // Function to handle adding cards to wishlist
+  const handleAddToWishlist = async (card) => {
+    if (!auth.currentUser) {
+      navigate('/login');
+      return;
+    }
+
+    const quantity = quantities[card.id] || 0;
+    if (quantity === 0) {
+      alert('Please select a quantity greater than 0');
+      return;
+    }
+
+    try {
+      const userRef = doc(db, 'users', auth.currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      
+      if (!userDoc.exists()) {
+        throw new Error('User not found');
+      }
+
+      const userData = userDoc.data();
+      const wishlist = userData.wishList?.cards || [];
+
+      // Check if card is already in wishlist
+      const existingCardIndex = wishlist.findIndex(item => item.id === card.id);
+      if (existingCardIndex !== -1) {
+        // Update quantity if card exists
+        wishlist[existingCardIndex].quantity = (wishlist[existingCardIndex].quantity || 0) + quantity;
+        await updateDoc(userRef, { 'wishList.cards': wishlist });
+      } else {
+        // Add new card with quantity
+        await updateDoc(userRef, {
+          'wishList.cards': arrayUnion({
+            id: card.id,
+            name: card.name,
+            images: card.images,
+            set: card.set,
+            rarity: card.rarity,
+            quantity: quantity,
+            addedAt: new Date()
+          })
+        });
+      }
+
+      alert('Cards added to wishlist!');
+      setQuantities(prev => ({ ...prev, [card.id]: 0 })); // Reset quantity after adding
+    } catch (error) {
+      console.error('Error adding card to wishlist:', error);
+      alert('Failed to add card to wishlist. Please try again.');
+    }
+  };
+
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -249,32 +365,69 @@ function Explore() {
           </div>
         ) : searchType === "card" && searchQuery ? (
           cards.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 px-10">
               {cards.map((card) => (
                 <div
                   key={card.id}
-                  className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300 cursor-pointer"
-                  onClick={() => navigate(`/set/${card.set.id}`)}
+                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 dark:bg-gray-400"
                 >
-                  <div className="aspect-w-16 aspect-h-9 bg-gray-100">
-                    <img
-                      src={card.images.small}
-                      alt={card.name}
-                      className="w-full h-48 object-contain p-4"
-                    />
-                  </div>
-                  <div className="p-4">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-300 truncate">
-                      {card.name}
-                    </h2>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{card.set.name}</p>
+                  <img
+                    src={card.images.small}
+                    alt={card.name}
+                    className="w-full h-auto object-contain bg-gray-100 p-2"
+                  />
+                  <div className="flex flex-col justify-between items-start">
+                    <div className="flex items-center justify-between w-full px-3 min-h-[4rem]">
+                      <p className="font-semibold text-gray-600">{card.name}</p>
+                      <p className="text-sm text-gray-600">
+                        {card.number}/{card.set.printedTotal}
+                      </p>
+                    </div>
+                    <div className="flex flex-col justify-start items-start w-full">
+                      <p className="text-sm text-gray-500 px-3">{card.set.name}</p>
+                    </div>
+                    <div className="flex flex-col gap-2 px-3 py-2 w-full">
+                      <div className="flex justify-center items-center gap-2 mb-2">
+                        <button
+                          className="border border-gray-200 px-2 py-0 rounded-md hover:bg-gray-100 flex items-center justify-center"
+                          onClick={() => updateQuantity(card.id, -1)}
+                        >
+                          -
+                        </button>
+                        <p className="text-gray-800 font-semibold p-0.5 text-center min-w-[2rem]">
+                          {quantities[card.id] || 0}
+                        </p>
+                        <button
+                          className="border border-gray-200 px-2 py-0 rounded-md hover:bg-gray-100 flex items-center justify-center"
+                          onClick={() => updateQuantity(card.id, 1)}
+                        >
+                          +
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => handleAddToWishlist(card)}
+                          className="flex items-center justify-center gap-1 px-1 py-1.5 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors text-xs"
+                        >
+                          <MdStar className="text-base flex-shrink-0" />
+                          <span>Add to Wishlist</span>
+                        </button>
+                        <button
+                          onClick={() => handleAddToInventory(card)}
+                          className="flex items-center justify-center gap-1 px-1 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-xs"
+                        >
+                          <MdCollections className="text-base flex-shrink-0" />
+                          <span>Add to Inventory</span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-600">No cards found matching "{searchQuery}"</p>
+              <p className="text-gray-600 dark:text-gray-400">No cards found matching "{searchQuery}"</p>
             </div>
           )
         ) : (
