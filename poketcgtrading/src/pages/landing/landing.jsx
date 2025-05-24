@@ -4,13 +4,54 @@ import { Link, useNavigate } from 'react-router-dom';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '../../firebase';
 import { useState, useEffect } from "react"
-import { doc, setDoc, getFirestore } from 'firebase/firestore';
+import { doc, setDoc, getDoc, getFirestore } from 'firebase/firestore';
 
 function Landing() {
     const navigate = useNavigate();
     const [error, setError] = useState('');
     const [appUsers, setAppUsers] = useState([]);
     const db = getFirestore();
+
+    const handleGoogle = async () => {
+        try {
+            const result = await signInWithPopup(auth, googleProvider);
+            const user = result.user;
+
+            // Check if user document exists in Firestore
+            const userDoc = await doc(db, "users", user.uid);
+            const userSnap = await getDoc(userDoc);
+
+            if (!userSnap.exists()) {
+                // User doesn't exist, create new user document
+                await setDoc(userDoc, {
+                    email: user.email,
+                    displayName: user.displayName,
+                    photoURL: user.photoURL,
+                    createdAt: new Date().toISOString(),
+                    age: 0,
+                    firstName: "",
+                    lastName: "",
+                    friendCode: "",
+                    friendList: [],
+                    inventory: [],
+                    offers: [],
+                    rating: 0,
+                    tradeComplete: 0,
+                    trades: [],
+                    wishList: {
+                        cards: [],
+                        favorites: []
+                    }
+                });
+            }
+
+            // Navigate to explore page after sign in/sign up
+            navigate('/explore');
+        } catch (error) {
+            console.error('Error with Google authentication:', error);
+            setError(error.message);
+        }
+    };
 
     const handleGoogleSignIn = async () => {
         try {
@@ -96,7 +137,7 @@ function Landing() {
                     <div className="flex-grow border-t border-gray-300"></div>
                 </div>
                 <button 
-                    onClick={handleGoogleSignIn}
+                    onClick={handleGoogle}
                     className='flex flex-row items-center justify-center space-x-4 text-black p-2 border border-gray rounded-xl my-3 hover:bg-gray-100'
                 >
                     <img className="w-5 h-5" src={google} alt="Google logo" />

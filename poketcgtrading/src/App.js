@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase';
+
 // import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Landing from './pages/landing/landing';
 import Inventory from './pages/inventory/inventory';
@@ -99,6 +100,7 @@ function App() {
 
   return (
     <Router>
+      <title>PokéTrade</title>
       <div className="App min-h-screen bg-white dark:bg-gray-900 dark:text-gray-200 transition-colors duration-200">
         <AppLayout />
         <Footer />
