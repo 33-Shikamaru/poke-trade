@@ -278,6 +278,15 @@ function Trade() {
       // Delete from trades collection
       const tradeRef = doc(db, 'trades', trade.id);
       await deleteDoc(tradeRef);
+      // Delete associated chat
+      const chatsRef = collection(db, 'chats');
+      const chatQuery = query(chatsRef, where('tradeId', '==', trade.id));
+      const chatSnapshot = await getDocs(chatQuery);
+      
+      if (!chatSnapshot.empty) {
+        const chatDoc = chatSnapshot.docs[0];
+        await deleteDoc(chatDoc.ref);
+      }
 
       // Update local state
       setTrades(prev => prev.filter(t => t.id !== trade.id));
@@ -376,6 +385,16 @@ function Trade() {
                 <div className="flex justify-center gap-2">
                   {trade.status === 'pending' && !trade.isSender && (
                     <>
+                        <button
+                      onClick={() => setExpandedChat(trade.id === expandedChat ? null : trade.id)}
+                      className={`p-2 text-blue-500 rounded ${
+                        trade.id === expandedChat 
+                          ? 'bg-blue-100 dark:bg-blue-900' 
+                          : 'hover:bg-blue-100 dark:hover:bg-blue-900'
+                      }`}
+                    >
+                      <FaComments />
+                    </button>
                       <button
                         onClick={() => handleAccept(trade)}
                         className="p-2 text-green-500 hover:bg-green-100 dark:hover:bg-green-900 rounded"
