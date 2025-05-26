@@ -72,110 +72,6 @@ function Friends() {
     fetchFriendsData();
   }, [navigate]);
 
-
-  const handleSearchUsers = async (e) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) {
-      setSearchResults([]);
-      setSearchError(null);
-      return;
-    }
-
-    setIsSearching(true);
-    setSearchError(null);
-    setSearchResults([]);
-    const currentUser = auth.currentUser;
-
-    try {
-      let potentialUsers = [];
-      const lowerCaseQuery = searchQuery.toLowerCase();
-      if (searchQuery.length > 15) { 
-        try {
-            const userDocRef = doc(db, "users", searchQuery);
-            const userDocSnap = await getDoc(userDocRef);
-            if (userDocSnap.exists()) {
-                const userData = userDocSnap.data();
-                potentialUsers.push({ id: userDocSnap.id, ...userData });
-            }
-        } catch (idError) {
-            console.log("Not a valid user ID or user not found by ID:", idError.message)
-        }
-      }
-      
-      
-      if (potentialUsers.length === 0) { 
-        const usersCollectionRef = collection(db, 'users');
-        const q = query(usersCollectionRef);
-        const querySnapshot = await getDocs(q); 
-        querySnapshot.forEach((docSnap) => {
-            const userData = docSnap.data();
-            if (
-                (userData.displayName && userData.displayName.toLowerCase().includes(lowerCaseQuery)) ||
-                (userData.email && userData.email.toLowerCase().includes(lowerCaseQuery))
-            ) {
-                potentialUsers.push({ id: docSnap.id, ...userData });
-            }
-        });
-      }
-
-
-      const currentUserFriends = friends.map(f => f.userId);
-      const filteredResults = potentialUsers.filter(user =>
-        user.id !== currentUser.uid && 
-        !currentUserFriends.includes(user.id) 
-      ).map(user => ({ 
-        userId: user.id,
-        displayName: user.displayName || user.email,
-        email: user.email,
-        photoURL: user.photoURL,
-      }));
-
-      setSearchResults(filteredResults);
-      if (filteredResults.length === 0) {
-        setSearchError('No users found matching your query, or they are already your friend.');
-      }
-    } catch (err) {
-      console.error('Error searching users:', err);
-      setSearchError('Failed to search users. Please try again.');
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  const handleSendFriendRequest = async (targetUserId, targetUserName) => {
-    const currentUser = auth.currentUser;
-    if (!currentUser || !targetUserId) return;
-
-   
-    setSentRequests(prev => ({ ...prev, [targetUserId]: true }));
-
-    try {
-      const recipientNotificationsRef = collection(db, 'users', targetUserId, 'notifications');
-      const newNotificationRef = doc(recipientNotificationsRef); 
-      await setDoc(newNotificationRef, {
-        type: 'friend_request',
-        senderId: currentUser.uid,
-        senderName: currentUser.displayName || currentUser.email,
-        senderPhotoURL: currentUser.photoURL || null, 
-        message: `${currentUser.displayName || currentUser.email} sent you a friend request.`,
-        timestamp: new Date(),
-        read: false,
-        status: 'pending' 
-      });
-
-    } catch (error) {
-      console.error('Error sending friend request:', error);
-      alert(`Failed to send friend request to ${targetUserName}. Please try again.`);
-      setSentRequests(prev => {
-        const newState = { ...prev };
-        delete newState[targetUserId];
-        return newState;
-      });
-    }
-  };
-
-
-  if (loadingFriends) {
   const handleSearchUsers = async (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) {
@@ -323,267 +219,138 @@ function Friends() {
               )}
               Search
             </button>
-
           </div>
         </form>
-        {isSearching && (
-          <div className="flex justify-center items-center py-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-          </div>
-        )}
-        {searchError && (
-          <div className="mb-6 text-center py-4 px-3 bg-red-50 dark:bg-red-900 dark:bg-opacity-50 rounded-md">
-            <p className="text-red-600 dark:text-red-300">{searchError}</p>
-          </div>
-        )}
-        {searchResults.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-white">Search Results</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {searchResults.map((user) => (
-                <div
-                  key={user.userId}
-                  className="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 transition-shadow"
-                >
-                  <div className="flex items-center space-x-4 mb-4">
-                    <img
-                      src={user.photoURL || Gengar}
-                      alt={user.displayName}
-                      className="w-16 h-16 rounded-full object-cover cursor-pointer"
-                      onClick={() => navigate(`/profile/${user.userId}`)}
-                    />
-                    <div>
-                      <h3
-                        className="text-xl font-semibold text-gray-900 dark:text-white hover:underline cursor-pointer"
-                        onClick={() => navigate(`/profile/${user.userId}`)}
-                      >
-                        {user.displayName}
-                      </h3>
-                      <p className="text-gray-500 dark:text-gray-400 text-sm">{user.email}</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handleSendFriendRequest(user.userId, user.displayName)}
-                    disabled={sentRequests[user.userId]}
-                    className={`w-full mt-4 px-4 py-2 rounded-lg text-white font-medium flex items-center justify-center transition-colors
-                                ${sentRequests[user.userId]
-                                  ? 'bg-green-500 cursor-default'
-                                  : 'bg-blue-500 hover:bg-blue-600'
-                                } disabled:opacity-70 disabled:cursor-not-allowed`}
+        <>
+          {isSearching && (
+            <div className="flex justify-center items-center py-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+          )}
+          {searchError && (
+            <div className="mb-6 text-center py-4 px-3 bg-red-50 dark:bg-red-900 dark:bg-opacity-50 rounded-md">
+              <p className="text-red-600 dark:text-red-300">{searchError}</p>
+            </div>
+          )}
+          {searchResults.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-white">Search Results</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {searchResults.map((user) => (
+                  <div
+                    key={user.userId}
+                    className="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 transition-shadow"
                   >
-                    {sentRequests[user.userId] ? (
-                      <>
-                        <FaCheckCircle className="mr-2" /> Request Sent
-                      </>
-                    ) : (
-                      <>
-                        <FaUserPlus className="mr-2" /> Add Friend
-                      </>
-                    )}
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        <hr className="my-8 border-gray-300 dark:border-gray-700" />
-        {friends.length === 0 && !loadingFriends && searchResults.length === 0 && !searchQuery ? (
-          <div className="text-center py-8">
-            <p className="text-gray-600 dark:text-gray-400">
-              You haven't added any friends yet. Use the search above to find and add friends!
-            </p>
-          </div>
-        ) : friends.length > 0 ? (
-          <div>
-            <h2 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-white">Your Friends ({friends.length})</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {friends.map((friend) => (
-                <div
-                  key={friend.userId}
-                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer"
-                  onClick={() => navigate(`/profile/${friend.userId}`)}
-                >
-                  <div className="flex items-center space-x-4">
-                    <img
-                      src={friend.photoURL || Gengar}
-                      alt={friend.displayName}
-                      className="w-16 h-16 rounded-full object-cover"
-                    />
-                    <div>
-                      <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                        {friend.displayName}
-                      </h2>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm">
-                        {friend.email}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-4 grid grid-cols-3 gap-2 text-center"> 
-                    <div>
-                      <p className="text-xl font-bold text-gray-900 dark:text-white"> 
-                        {friend.stats.tradeComplete}
-                      </p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400"> 
-                        Trades
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xl font-bold text-gray-900 dark:text-white">
-                        {friend.stats.friends}
-                      </p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
-                        Friends
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xl font-bold text-gray-900 dark:text-white">
-                        {friend.stats.cards}
-                      </p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
-                        Cards
-                      </p>
-                    </div>
-                  </div>
-                  {friend.bio && (
-                    <p className="mt-4 text-gray-600 dark:text-gray-400 text-sm italic">
-                      "{friend.bio.substring(0, 60)}{friend.bio.length > 60 ? '...' : ''}" 
-                    </p>
-                  )}
-               </div>
-        </form>
-        {isSearching && (
-          <div className="flex justify-center items-center py-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-
-          </div>
-        )}
-        {searchError && (
-          <div className="mb-6 text-center py-4 px-3 bg-red-50 dark:bg-red-900 dark:bg-opacity-50 rounded-md">
-            <p className="text-red-600 dark:text-red-300">{searchError}</p>
-          </div>
-        )}
-        {searchResults.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-white">Search Results</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {searchResults.map((user) => (
-                <div
-                  key={user.userId}
-                  className="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 transition-shadow"
-                >
-                  <div className="flex items-center space-x-4 mb-4">
-                    <img
-                      src={user.photoURL || Gengar}
-                      alt={user.displayName}
-                      className="w-16 h-16 rounded-full object-cover cursor-pointer"
-                      onClick={() => navigate(`/profile/${user.userId}`)}
-                    />
-                    <div>
-                      <h3
-                        className="text-xl font-semibold text-gray-900 dark:text-white hover:underline cursor-pointer"
+                    <div className="flex items-center space-x-4 mb-4">
+                      <img
+                        src={user.photoURL || Gengar}
+                        alt={user.displayName}
+                        className="w-16 h-16 rounded-full object-cover cursor-pointer"
                         onClick={() => navigate(`/profile/${user.userId}`)}
-                      >
-                        {user.displayName}
-                      </h3>
-                      <p className="text-gray-500 dark:text-gray-400 text-sm">{user.email}</p>
+                      />
+                      <div>
+                        <h3
+                          className="text-xl font-semibold text-gray-900 dark:text-white hover:underline cursor-pointer"
+                          onClick={() => navigate(`/profile/${user.userId}`)}
+                        >
+                          {user.displayName}
+                        </h3>
+                        <p className="text-gray-500 dark:text-gray-400 text-sm">{user.email}</p>
+                      </div>
                     </div>
+                    <button
+                      onClick={() => handleSendFriendRequest(user.userId, user.displayName)}
+                      disabled={sentRequests[user.userId]}
+                      className={`w-full mt-4 px-4 py-2 rounded-lg text-white font-medium flex items-center justify-center transition-colors
+                                  ${sentRequests[user.userId]
+                                    ? 'bg-green-500 cursor-default'
+                                    : 'bg-blue-500 hover:bg-blue-600'
+                                  } disabled:opacity-70 disabled:cursor-not-allowed`}
+                    >
+                      {sentRequests[user.userId] ? (
+                        <>
+                          <FaCheckCircle className="mr-2" /> Request Sent
+                        </>
+                      ) : (
+                        <>
+                          <FaUserPlus className="mr-2" /> Add Friend
+                        </>
+                      )}
+                    </button>
                   </div>
-                  <button
-                    onClick={() => handleSendFriendRequest(user.userId, user.displayName)}
-                    disabled={sentRequests[user.userId]}
-                    className={`w-full mt-4 px-4 py-2 rounded-lg text-white font-medium flex items-center justify-center transition-colors
-                                ${sentRequests[user.userId]
-                                  ? 'bg-green-500 cursor-default'
-                                  : 'bg-blue-500 hover:bg-blue-600'
-                                } disabled:opacity-70 disabled:cursor-not-allowed`}
+                ))}
+              </div>
+            </div>
+          )}
+          <hr className="my-8 border-gray-300 dark:border-gray-700" />
+          {friends.length === 0 && !loadingFriends && searchResults.length === 0 && !searchQuery ? (
+            <div className="text-center py-8">
+              <p className="text-gray-600 dark:text-gray-400">
+                You haven't added any friends yet. Use the search above to find and add friends!
+              </p>
+            </div>
+          ) : friends.length > 0 ? (
+            <div>
+              <h2 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-white">Your Friends ({friends.length})</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {friends.map((friend) => (
+                  <div
+                    key={friend.userId}
+                    className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer"
+                    onClick={() => navigate(`/profile/${friend.userId}`)}
                   >
-                    {sentRequests[user.userId] ? (
-                      <>
-                        <FaCheckCircle className="mr-2" /> Request Sent
-                      </>
-                    ) : (
-                      <>
-                        <FaUserPlus className="mr-2" /> Add Friend
-                      </>
+                    <div className="flex items-center space-x-4">
+                      <img
+                        src={friend.photoURL || Gengar}
+                        alt={friend.displayName}
+                        className="w-16 h-16 rounded-full object-cover"
+                      />
+                      <div>
+                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                          {friend.displayName}
+                        </h2>
+                        <p className="text-gray-600 dark:text-gray-400 text-sm">
+                          {friend.email}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                      <div>
+                        <p className="text-xl font-bold text-gray-900 dark:text-white">
+                          {friend.stats.tradeComplete}
+                        </p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          Trades
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xl font-bold text-gray-900 dark:text-white">
+                          {friend.stats.friends}
+                        </p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          Friends
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xl font-bold text-gray-900 dark:text-white">
+                          {friend.stats.cards}
+                        </p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          Cards
+                        </p>
+                      </div>
+                    </div>
+                    {friend.bio && (
+                      <p className="mt-4 text-gray-600 dark:text-gray-400 text-sm italic">
+                        "{friend.bio.substring(0, 60)}{friend.bio.length > 60 ? '...' : ''}"
+                      </p>
                     )}
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        <hr className="my-8 border-gray-300 dark:border-gray-700" />
-        {friends.length === 0 && !loadingFriends && searchResults.length === 0 && !searchQuery ? (
-          <div className="text-center py-8">
-            <p className="text-gray-600 dark:text-gray-400">
-              You haven't added any friends yet. Use the search above to find and add friends!
-            </p>
-          </div>
-        ) : friends.length > 0 ? (
-          <div>
-            <h2 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-white">Your Friends ({friends.length})</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {friends.map((friend) => (
-                <div
-                  key={friend.userId}
-                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer"
-                  onClick={() => navigate(`/profile/${friend.userId}`)}
-                >
-                  <div className="flex items-center space-x-4">
-                    <img
-                      src={friend.photoURL || Gengar}
-                      alt={friend.displayName}
-                      className="w-16 h-16 rounded-full object-cover"
-                    />
-                    <div>
-                      <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                        {friend.displayName}
-                      </h2>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm">
-                        {friend.email}
-                      </p>
-                    </div>
                   </div>
-                  <div className="mt-4 grid grid-cols-3 gap-2 text-center"> 
-                    <div>
-                      <p className="text-xl font-bold text-gray-900 dark:text-white"> 
-                        {friend.stats.tradeComplete}
-                      </p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400"> 
-                        Trades
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xl font-bold text-gray-900 dark:text-white">
-                        {friend.stats.friends}
-                      </p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
-                        Friends
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xl font-bold text-gray-900 dark:text-white">
-                        {friend.stats.cards}
-                      </p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
-                        Cards
-                      </p>
-                    </div>
-                  </div>
-                  {friend.bio && (
-                    <p className="mt-4 text-gray-600 dark:text-gray-400 text-sm italic">
-                      "{friend.bio.substring(0, 60)}{friend.bio.length > 60 ? '...' : ''}" 
-                    </p>
-                  )}
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-              ))}
-            </div>
-          </div>
-
-        ) : null }
+          ) : null}
+        </>
       </div>
     </div>
   );
