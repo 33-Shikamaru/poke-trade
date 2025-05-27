@@ -223,6 +223,16 @@ function Friends() {
     }
   };
 
+  const renderFriendAvatar = (friend) => {
+    if (friend.photoURL && friend.photoURL.startsWith('avatar:')) {
+      const avatarName = friend.photoURL.split(':')[1];
+      const avatar = avatarOptions.find(opt => opt.name === avatarName);
+      if (avatar && !avatar.isUpload) {
+        return <img src={avatar.image} alt={avatar.name} className="w-16 h-16 rounded-full object-cover" />;
+      }
+    }
+    return <img src={friend.photoURL || Gengar} alt={friend.displayName} className="w-16 h-16 rounded-full object-cover" />;
+  };
 
   if (loadingFriends) {
     return (
@@ -350,11 +360,7 @@ function Friends() {
                     onClick={() => navigate(`/profile/${friend.userId}`)}
                   >
                     <div className="flex items-center space-x-4">
-                      <img
-                        src={friend.avatarImage || friend.photoURL || Gengar}
-                        alt={friend.displayName}
-                        className="w-16 h-16 rounded-full object-cover"
-                      />
+                      {renderFriendAvatar(friend)}
                       <div>
                         <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                           {friend.displayName}
