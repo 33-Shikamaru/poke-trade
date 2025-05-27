@@ -16,7 +16,11 @@ function Wishlist() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchType, setSearchType] = useState("all"); // "all", "card", "set"
   const [isSearchTypeOpen, setIsSearchTypeOpen] = useState(false);
-  const [isDigital, setIsDigital] = useState(false);
+  const [isDigital, setIsDigital] = useState(() => {
+    // Initialize from localStorage, default to false if not set
+    const savedState = localStorage.getItem('isDigital');
+    return savedState ? JSON.parse(savedState) : false;
+  });
   const db = getFirestore();
   const navigate = useNavigate();
   const searchTypeRef = useRef(null);
@@ -61,6 +65,14 @@ function Wishlist() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Function to handle digital/physical toggle
+  const handleToggle = () => {
+    const newState = !isDigital;
+    setIsDigital(newState);
+    // Save to localStorage
+    localStorage.setItem('isDigital', JSON.stringify(newState));
+  };
 
   const updateQuantity = (cardId, change) => {
     setPendingChanges(prev => {
@@ -302,14 +314,14 @@ function Wishlist() {
         {/* Favorites Section */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-            <h1 className="text-4xl font-bold mb-8 dark:text-gray-00">Favorite Cards</h1>
+            <h1 className="text-4xl font-bold dark:text-gray-00">Favorite Cards</h1>
             
             <div className="flex gap-4 items-center">
               {/* Toggle Switch */}
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Physical</span>
                 <button
-                  onClick={() => setIsDigital(!isDigital)}
+                  onClick={handleToggle}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                     isDigital ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-600'
                   }`}
