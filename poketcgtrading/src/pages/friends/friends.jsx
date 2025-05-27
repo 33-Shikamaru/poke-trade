@@ -4,6 +4,15 @@ import { doc, getDoc, getDocs, collection, query, where, writeBatch, setDoc } fr
 import { auth, db } from '../../firebase';
 import Gengar from '../../assets/gengar.png'; // Default avatar
 import { FaSearch, FaUserPlus, FaCheckCircle } from 'react-icons/fa'; // Icons
+import Avatar1 from '../../assets/avatars/avatar1.png';
+import Avatar2 from '../../assets/avatars/avatar2.png';
+import Avatar3 from '../../assets/avatars/avatar3.png';
+import Avatar4 from '../../assets/avatars/avatar4.png';
+import Avatar5 from '../../assets/avatars/avatar5.png';
+import Avatar6 from '../../assets/avatars/avatar6.png';
+import Avatar7 from '../../assets/avatars/avatar7.png';
+import Avatar8 from '../../assets/avatars/avatar8.png';
+import Avatar9 from '../../assets/avatars/avatar9.png';
 
 function Friends() {
   const navigate = useNavigate();
@@ -17,6 +26,19 @@ function Friends() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState(null);
   const [sentRequests, setSentRequests] = useState({}); 
+
+  const avatarOptions = [
+    { image: Avatar1, name: "avatar1" },
+    { image: Avatar2, name: "avatar2" },
+    { image: Avatar3, name: "avatar3" },
+    { image: Avatar4, name: "avatar4" },
+    { image: Avatar5, name: "avatar5" },
+    { image: Avatar6, name: "avatar6" },
+    { image: Avatar7, name: "avatar7" },
+    { image: Avatar8, name: "avatar8" },
+    { image: Avatar9, name: "avatar9" },
+    { image: null, name: "upload", isUpload: true }
+  ];
 
   useEffect(() => {
     const fetchFriendsData = async () => {
@@ -43,11 +65,16 @@ function Friends() {
           const friendDocSnap = await getDoc(friendRef); 
           if (friendDocSnap.exists()) {
             const data = friendDocSnap.data();
+            // Get the avatar image based on the user's avatar selection
+            const avatarIndex = data.avatarIndex || 0;
+            const avatarImage = avatarOptions[avatarIndex]?.image || Gengar;
+            
             return {
               userId: friendId,
               displayName: data.displayName || data.email,
               email: data.email,
               photoURL: data.photoURL,
+              avatarImage: avatarImage,
               bio: data.bio,
               stats: {
                 tradeComplete: data.stats?.tradeComplete || data.tradeComplete || 0,
@@ -88,46 +115,65 @@ function Friends() {
     try {
       let potentialUsers = [];
       const lowerCaseQuery = searchQuery.toLowerCase();
-      if (searchQuery.length > 15) { 
+
+      // Function to process user data and get avatar
+      const processUserData = (userData, userId) => {
+        // Parse avatar name from photoURL if it's in the format "avatar:avatarX"
+        let avatarImage = Gengar;
+        if (userData.photoURL && userData.photoURL.startsWith('avatar:')) {
+          const avatarName = userData.photoURL.split(':')[1];
+          const avatarOption = avatarOptions.find(option => option.name === avatarName);
+          if (avatarOption) {
+            avatarImage = avatarOption.image;
+          }
+        }
+
+        return {
+          userId: userId,
+          displayName: userData.displayName || userData.email,
+          email: userData.email,
+          photoURL: userData.photoURL,
+          avatarImage: avatarImage
+        };
+      };
+
+      // Search by user ID if query is long enough
+      if (searchQuery.length > 15) {
         try {
-            const userDocRef = doc(db, "users", searchQuery);
-            const userDocSnap = await getDoc(userDocRef);
-            if (userDocSnap.exists()) {
-                const userData = userDocSnap.data();
-                potentialUsers.push({ id: userDocSnap.id, ...userData });
-            }
+          const userDocRef = doc(db, "users", searchQuery);
+          const userDocSnap = await getDoc(userDocRef);
+          if (userDocSnap.exists()) {
+            const userData = userDocSnap.data();
+            potentialUsers.push(processUserData(userData, userDocSnap.id));
+          }
         } catch (idError) {
-            console.log("Not a valid user ID or user not found by ID:", idError.message)
+          console.log("Not a valid user ID or user not found by ID:", idError.message);
         }
       }
-      
-      
-      if (potentialUsers.length === 0) { 
+
+      // Search by name/email if no results from ID search
+      if (potentialUsers.length === 0) {
         const usersCollectionRef = collection(db, 'users');
         const q = query(usersCollectionRef);
-        const querySnapshot = await getDocs(q); 
+        const querySnapshot = await getDocs(q);
+        
         querySnapshot.forEach((docSnap) => {
-            const userData = docSnap.data();
-            if (
-                (userData.displayName && userData.displayName.toLowerCase().includes(lowerCaseQuery)) ||
-                (userData.email && userData.email.toLowerCase().includes(lowerCaseQuery))
-            ) {
-                potentialUsers.push({ id: docSnap.id, ...userData });
-            }
+          const userData = docSnap.data();
+          if (
+            (userData.displayName && userData.displayName.toLowerCase().includes(lowerCaseQuery)) ||
+            (userData.email && userData.email.toLowerCase().includes(lowerCaseQuery))
+          ) {
+            potentialUsers.push(processUserData(userData, docSnap.id));
+          }
         });
       }
 
-
+      // Filter out current user and existing friends
       const currentUserFriends = friends.map(f => f.userId);
       const filteredResults = potentialUsers.filter(user =>
-        user.id !== currentUser.uid && 
-        !currentUserFriends.includes(user.id) 
-      ).map(user => ({ 
-        userId: user.id,
-        displayName: user.displayName || user.email,
-        email: user.email,
-        photoURL: user.photoURL,
-      }));
+        user.userId !== currentUser.uid && 
+        !currentUserFriends.includes(user.userId)
+      );
 
       setSearchResults(filteredResults);
       if (filteredResults.length === 0) {
@@ -243,7 +289,7 @@ function Friends() {
                   >
                     <div className="flex items-center space-x-4 mb-4">
                       <img
-                        src={user.photoURL || Gengar}
+                        src={user.avatarImage || user.photoURL || Gengar}
                         alt={user.displayName}
                         className="w-16 h-16 rounded-full object-cover cursor-pointer"
                         onClick={() => navigate(`/profile/${user.userId}`)}
@@ -301,7 +347,7 @@ function Friends() {
                   >
                     <div className="flex items-center space-x-4">
                       <img
-                        src={friend.photoURL || Gengar}
+                        src={friend.avatarImage || friend.photoURL || Gengar}
                         alt={friend.displayName}
                         className="w-16 h-16 rounded-full object-cover"
                       />
