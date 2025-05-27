@@ -191,21 +191,25 @@ function Friends() {
     const currentUser = auth.currentUser;
     if (!currentUser || !targetUserId) return;
 
-   
     setSentRequests(prev => ({ ...prev, [targetUserId]: true }));
 
     try {
+      // Check if notifications subcollection exists
       const recipientNotificationsRef = collection(db, 'users', targetUserId, 'notifications');
-      const newNotificationRef = doc(recipientNotificationsRef); 
+      const notificationsQuery = query(recipientNotificationsRef);
+      const notificationsSnapshot = await getDocs(notificationsQuery);
+
+      // Create the notification
+      const newNotificationRef = doc(recipientNotificationsRef);
       await setDoc(newNotificationRef, {
         type: 'friend_request',
         senderId: currentUser.uid,
         senderName: currentUser.displayName || currentUser.email,
-        senderPhotoURL: currentUser.photoURL || null, 
+        senderPhotoURL: currentUser.photoURL || null,
         message: `${currentUser.displayName || currentUser.email} sent you a friend request.`,
         timestamp: new Date(),
         read: false,
-        status: 'pending' 
+        status: 'pending'
       });
 
     } catch (error) {
