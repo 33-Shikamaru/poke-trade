@@ -421,7 +421,7 @@ function Explore() {
               <button
                 onClick={handleToggle}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                  isDigital ? 'bg-blue-600' : 'bg-gray-200'
+                  isDigital ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-600'
                 }`}
               >
                 <span
@@ -544,20 +544,20 @@ function Explore() {
               {cards.map((card) => (
                 <div
                   key={card.id}
-                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 dark:bg-gray-400"
+                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 dark:bg-gray-600"
                 >
                   <img
                     src={card.image}
                     alt={card.name}
-                    className="w-full h-auto object-contain bg-gray-100 p-2"
+                    className="w-full h-auto object-contain bg-gray-100 p-2 dark:bg-gray-500"
                   />
                   <div className="flex flex-col justify-between items-start">
                     <div className="flex items-center justify-between w-full px-3 min-h-[4rem]">
-                      <p className="font-semibold text-gray-600">{card.name}</p>
-                      <p className="text-sm text-gray-600">{card.rarity}</p>
+                      <p className="font-semibold text-gray-600 dark:text-gray-300">{card.name}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">{card.rarity}</p>
                     </div>
                     <div className="flex flex-col justify-start items-start w-full">
-                      <p className="text-sm text-gray-500 px-3">{getDisplayName(card.pack)}</p>
+                      <p className="text-sm text-gray-500 px-3 dark:text-gray-300">{getDisplayName(card.pack)}</p>
                     </div>
                     <div className="flex flex-col gap-2 px-3 py-2 w-full">
                       <div className="flex justify-center items-center gap-2 mb-2">
@@ -567,7 +567,7 @@ function Explore() {
                         >
                           -
                         </button>
-                        <p className="text-gray-800 font-semibold p-0.5 text-center min-w-[2rem]">
+                        <p className="text-gray-800 font-semibold p-0.5 text-center min-w-[2rem] dark:text-gray-300">
                           {quantities[card.id] || 0}
                         </p>
                         <button
@@ -616,7 +616,7 @@ function Explore() {
                     />
                   </div>
                   <div className="p-4">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-300 truncate">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-300 truncate dark:text-gray-600">
                       {set.name}
                     </h2>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{set.series}</p>

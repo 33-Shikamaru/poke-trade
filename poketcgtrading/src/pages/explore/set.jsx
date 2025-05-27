@@ -243,24 +243,25 @@ function Set() {
             {cards.map((card) => (
               <div
                 key={card.id}
-                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 dark:bg-gray-400"
+                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 
+                dark:bg-gray-600"
               >
                 <img
                   src={card.images.small}
                   alt={card.name}
-                  className="w-full h-auto object-contain bg-gray-100 p-2"
+                  className="w-full h-auto object-contain bg-gray-100 p-2 dark:bg-gray-500"
                 />
                 <div className="flex flex-col justify-between items-start">
                   <div className="flex items-center justify-between w-full px-3 min-h-[4rem]">
-                    <p className="font-semibold text-gray-600">{card.name}</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="font-semibold text-gray-600 dark:text-gray-300">{card.name}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
                       {card.number}/{set.printedTotal}
                     </p>
                   </div>
                   <div className="flex flex-col justify-start items-start w-full">
-                    <p className="text-sm text-gray-500 px-3">{set.name}</p>
+                    <p className="text-sm text-gray-500 px-3 dark:text-gray-300">{set.name}</p>
                   </div>
-                  <div className="flex flex-col gap-2 px-3 py-2 w-full">
+                  <div className="flex flex-col gap-2 px-3 py-2 w-full dark:text-gray-300">
                     <div className="flex justify-center items-center gap-2 mb-2">
                       <button
                         className="border border-gray-200 px-2 py-0 rounded-md hover:bg-gray-100 flex items-center justify-center"
@@ -268,7 +269,7 @@ function Set() {
                       >
                         -
                       </button>
-                      <p className="text-gray-800 font-semibold p-0.5 text-center min-w-[2rem]">
+                      <p className="text-gray-800 font-semibold p-0.5 text-center min-w-[2rem] dark:text-gray-300">
                         {quantities[card.id] || 0}
                       </p>
                       <button
