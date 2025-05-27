@@ -6,6 +6,15 @@ import { doc, getDoc, updateDoc, arrayUnion, setDoc } from "firebase/firestore";
 import { FaSearch, FaChevronDown } from "react-icons/fa";
 import { MdCollections, MdStar } from "react-icons/md";
 
+// Import set images
+import celestialGuardians from '../../assets/pocketSets/celestial-guardians.png';
+import shiningRevelry from '../../assets/pocketSets/shining-revelry.png';
+import triumphantLight from '../../assets/pocketSets/triumphant-light.png';
+import spaceTimeSmackdown from '../../assets/pocketSets/space-timesmackdown.png';
+import mythicalIsland from '../../assets/pocketSets/mythical-island.png';
+import geneticApex from '../../assets/pocketSets/genetic-apex.png';
+import promo from '../../assets/pocketSets/promo.png';
+
 function Explore() {
   const navigate = useNavigate();
   const [sets, setSets] = useState([]);
@@ -15,9 +24,45 @@ function Explore() {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [tempSearchQuery, setTempSearchQuery] = useState("");
-  const [searchType, setSearchType] = useState("all"); // "all", "card", "set"
+  const [searchType, setSearchType] = useState("all");
   const [isSearchTypeOpen, setIsSearchTypeOpen] = useState(false);
   const [quantities, setQuantities] = useState({});
+  const [isDigital, setIsDigital] = useState(false);
+  const [selectedSet, setSelectedSet] = useState(null);
+
+  // Define the valid pocket sets with their corresponding images
+  const pocketSets = [
+    { name: 'Genetic Apex', image: geneticApex },
+    { name: 'Mythical Island', image: mythicalIsland },
+    { name: 'Space-Time Smackdown', image: spaceTimeSmackdown },
+    { name: 'Triumphant Light', image: triumphantLight },
+    { name: 'Shining Revelry', image: shiningRevelry },
+    { name: 'Celestial Guardians', image: celestialGuardians },
+    { name: 'Promo V1', image: promo },
+    { name: 'Promo V2', image: promo }
+  ];
+
+  // Function to get display name for a set
+  const getDisplayName = (setName) => {
+    // If the name starts with "Shared(", extract the name inside parentheses
+    if (setName.startsWith('Shared(')) {
+      return setName.match(/Shared\((.*?)\)/)[1];
+    }
+    return setName;
+  };
+
+  // Function to get the original set name for matching
+  const getOriginalSetName = (displayName) => {
+    // Check if this display name corresponds to a Shared set
+    const sharedSet = pocketSets.find(set => 
+      set.name === displayName && 
+      !set.name.startsWith('Shared(')
+    );
+    if (sharedSet) {
+      return `Shared(${displayName})`;
+    }
+    return displayName;
+  };
 
   // Function to update quantity
   const updateQuantity = (cardId, change) => {
@@ -37,28 +82,84 @@ function Explore() {
   useEffect(() => {
     const fetchSets = async () => {
       try {
-        console.log("Fetching all sets");
-        const response = await fetch("https://api.pokemontcg.io/v2/sets", {
-          headers: {
-            "X-Api-Key": process.env.REACT_APP_POKEMON_TCG_API_KEY,
-          },
-        });
+        setLoading(true);
+        if (isDigital) {
+          // Fetch digital sets from Pocket JSON
+          const response = await fetch('https://raw.githubusercontent.com/chase-manning/pokemon-tcg-pocket-cards/refs/heads/main/v4.json');
+          if (!response.ok) {
+            throw new Error(`Failed to fetch digital sets: ${response.status} ${response.statusText}`);
+          }
+          const data = await response.json();
+          // Transform the data to group cards by pack
+          const packGroups = {};
+          
+          // Check if data is an array of cards
+          if (Array.isArray(data)) {
+            data.forEach(card => {
+              // Get the display name for the pack
+              const displayName = getDisplayName(card.pack);
+              // Get the original set name for matching
+              const originalSetName = getOriginalSetName(displayName);
+              
+              // Only include cards from valid pocket sets
+              if (pocketSets.some(pocketSet => 
+                pocketSet.name === displayName || 
+                `Shared(${pocketSet.name})` === card.pack
+              )) {
+                if (!packGroups[displayName]) {
+                  packGroups[displayName] = {
+                    cards: [],
+                    name: displayName
+                  };
+                }
+                packGroups[displayName].cards.push(card);
+              }
+            });
+          } else {
+            console.error("Unexpected data structure:", data);
+            throw new Error("Invalid data format from Pocket JSON");
+          }
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error("API Error Response:", errorData);
-          throw new Error(`Failed to fetch sets: ${response.status} ${response.statusText}`);
+          // Create sets only for the predefined pocket sets
+          const transformedSets = pocketSets.map(pocketSet => {
+            const packData = packGroups[pocketSet.name] || { cards: [] };
+            return {
+              id: pocketSet.name.toLowerCase().replace(/\s+/g, '-'),
+              name: pocketSet.name,
+              series: "Pokemon TCG Pocket",
+              images: {
+                logo: pocketSet.image
+              },
+              printedTotal: packData.cards.length,
+              cards: packData.cards
+            };
+          });
+          setSets(transformedSets);
+          setFilteredSets(transformedSets);
+        } else {
+          // Fetch physical sets from Pokemon TCG API
+          const response = await fetch("https://api.pokemontcg.io/v2/sets", {
+            headers: {
+              "X-Api-Key": process.env.REACT_APP_POKEMON_TCG_API_KEY,
+            },
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.error("API Error Response:", errorData);
+            throw new Error(`Failed to fetch sets: ${response.status} ${response.statusText}`);
+          }
+
+          const data = await response.json();
+          console.log("Sets data received:", data);
+          
+          if (!data.data) {
+            throw new Error("Invalid response format from API");
+          }
+
+          setSets(data.data);
+          setFilteredSets(data.data);
         }
-
-        const data = await response.json();
-        console.log("Sets data received:", data);
-        
-        if (!data.data) {
-          throw new Error("Invalid response format from API");
-        }
-
-        setSets(data.data);
-        setFilteredSets(data.data);
         setLoading(false);
       } catch (err) {
         console.error("Error fetching sets:", err);
@@ -68,7 +169,7 @@ function Explore() {
     };
 
     fetchSets();
-  }, []);
+  }, [isDigital]); // Add isDigital as a dependency
 
   // Fetch cards when searching by card name
   useEffect(() => {
@@ -272,86 +373,124 @@ function Explore() {
     }
   };
 
+  // Function to handle set click
+  const handleSetClick = (set) => {
+    if (isDigital) {
+      setSelectedSet(set);
+      setCards(set.cards || []);
+    } else {
+      navigate(`/set/${set.id}`);
+    }
+  };
+
+  // Function to handle digital/physical toggle
+  const handleToggle = () => {
+    setIsDigital(!isDigital);
+    setSelectedSet(null);
+    setCards([]);
+    setSearchQuery("");
+    setTempSearchQuery("");
+  };
+
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header and Search Section */}
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-300">
-            All the Sets of Cards
+            {isDigital ? "Pokemon Pocket Sets" : "All the Sets of Cards"}
           </h1>
-          <form onSubmit={handleSearch} className="flex gap-2 w-full sm:w-auto">
-            {/* Search Type Dropdown */}
-            <div className="relative">
+          <div className="flex gap-4 items-center">
+            {/* Toggle Switch */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Physical</span>
               <button
-                type="button"
-                onClick={() => setIsSearchTypeOpen(!isSearchTypeOpen)}
-                className="flex items-center justify-between gap-2 h-[42px] w-32 px-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-600 text-sm whitespace-nowrap"
+                onClick={handleToggle}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  isDigital ? 'bg-blue-600' : 'bg-gray-200'
+                }`}
               >
-                <span className="truncate">
-                  {searchType === "all" ? "All" : 
-                   searchType === "card" ? "Card Name" : "Set Name"}
-                </span>
-                <FaChevronDown className="text-xs flex-shrink-0" />
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    isDigital ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
               </button>
-              
-              {isSearchTypeOpen && (
-                <div className="absolute top-full left-0 mt-1 w-32 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 z-10">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchType("all");
-                      setIsSearchTypeOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 rounded-t-lg"
-                  >
-                    All
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchType("card");
-                      setIsSearchTypeOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600"
-                  >
-                    Card Name
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchType("set");
-                      setIsSearchTypeOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 rounded-b-lg"
-                  >
-                    Set Name
-                  </button>
-                </div>
-              )}
+              <span className="text-sm text-gray-600 dark:text-gray-400">Digital</span>
             </div>
+            <form onSubmit={handleSearch} className="flex gap-2 w-full sm:w-auto">
+              {/* Search Type Dropdown */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsSearchTypeOpen(!isSearchTypeOpen)}
+                  className="flex items-center justify-between gap-2 h-[42px] w-32 px-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-600 text-sm whitespace-nowrap"
+                >
+                  <span className="truncate">
+                    {searchType === "all" ? "All" : 
+                     searchType === "card" ? "Card Name" : "Set Name"}
+                  </span>
+                  <FaChevronDown className="text-xs flex-shrink-0" />
+                </button>
+                
+                {isSearchTypeOpen && (
+                  <div className="absolute top-full left-0 mt-1 w-32 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 z-10">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchType("all");
+                        setIsSearchTypeOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 rounded-t-lg"
+                    >
+                      All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchType("card");
+                        setIsSearchTypeOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600"
+                    >
+                      Card Name
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchType("set");
+                        setIsSearchTypeOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 rounded-b-lg"
+                    >
+                      Set Name
+                    </button>
+                  </div>
+                )}
+              </div>
 
-            {/* Search Input */}
-            <div className="relative flex-1 sm:w-96">
-              <input
-                type="text"
-                placeholder={`Search by ${searchType === "all" ? "card name or set" : 
-                           searchType === "card" ? "card name" : "set name"}...`}
-                value={tempSearchQuery}
-                onChange={(e) => setTempSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            </div>
+              {/* Search Input */}
+              <div className="relative flex-1 sm:w-96">
+                <input
+                  type="text"
+                  placeholder={`Search by ${searchType === "all" ? "card name or set" : 
+                             searchType === "card" ? "card name" : "set name"}...`}
+                  value={tempSearchQuery}
+                  onChange={(e) => setTempSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              </div>
 
-            {/* Search Button */}
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-            >
-              Search
-            </button>
-          </form>
+              {/* Search Button */}
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                Search
+              </button>
+            </form>
+          </div>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-8">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-300">How the App Works:</h2>
@@ -364,7 +503,7 @@ function Explore() {
           </ol>
         </div>
 
-        {loading ? (
+        {loading && !isDigital ? (
           <div className="flex justify-center items-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
           </div>
@@ -376,8 +515,17 @@ function Explore() {
               If the problem persists, the API might be temporarily unavailable.
             </p>
           </div>
-        ) : searchType === "card" && searchQuery ? (
-          cards.length > 0 ? (
+        ) : (isDigital && selectedSet) ? (
+          <div>
+            <div className="mb-4">
+              <button
+                onClick={() => setSelectedSet(null)}
+                className="text-blue-500 hover:text-blue-600 flex items-center gap-2"
+              >
+                <FaChevronDown className="transform rotate-90" />
+                Back to Sets
+              </button>
+            </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 px-10">
               {cards.map((card) => (
                 <div
@@ -385,19 +533,17 @@ function Explore() {
                   className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 dark:bg-gray-400"
                 >
                   <img
-                    src={card.images.small}
+                    src={card.image}
                     alt={card.name}
                     className="w-full h-auto object-contain bg-gray-100 p-2"
                   />
                   <div className="flex flex-col justify-between items-start">
                     <div className="flex items-center justify-between w-full px-3 min-h-[4rem]">
                       <p className="font-semibold text-gray-600">{card.name}</p>
-                      <p className="text-sm text-gray-600">
-                        {card.number}/{card.set.printedTotal}
-                      </p>
+                      <p className="text-sm text-gray-600">{card.rarity}</p>
                     </div>
                     <div className="flex flex-col justify-start items-start w-full">
-                      <p className="text-sm text-gray-500 px-3">{card.set.name}</p>
+                      <p className="text-sm text-gray-500 px-3">{getDisplayName(card.pack)}</p>
                     </div>
                     <div className="flex flex-col gap-2 px-3 py-2 w-full">
                       <div className="flex justify-center items-center gap-2 mb-2">
@@ -438,11 +584,7 @@ function Explore() {
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-gray-600 dark:text-gray-400">No cards found matching "{searchQuery}"</p>
-            </div>
-          )
+          </div>
         ) : (
           filteredSets.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -450,7 +592,7 @@ function Explore() {
                 <div
                   key={set.id}
                   className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300 cursor-pointer"
-                  onClick={() => navigate(`/set/${set.id}`)}
+                  onClick={() => handleSetClick(set)}
                 >
                   <div className="aspect-w-16 aspect-h-9 bg-gray-100">
                     <img
