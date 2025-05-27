@@ -27,7 +27,11 @@ function Explore() {
   const [searchType, setSearchType] = useState("all");
   const [isSearchTypeOpen, setIsSearchTypeOpen] = useState(false);
   const [quantities, setQuantities] = useState({});
-  const [isDigital, setIsDigital] = useState(false);
+  const [isDigital, setIsDigital] = useState(() => {
+    // Initialize from localStorage, default to false if not set
+    const savedState = localStorage.getItem('isDigital');
+    return savedState ? JSON.parse(savedState) : false;
+  });
   const [selectedSet, setSelectedSet] = useState(null);
 
   // Define the valid pocket sets with their corresponding images
@@ -399,7 +403,10 @@ function Explore() {
 
   // Function to handle digital/physical toggle
   const handleToggle = () => {
-    setIsDigital(!isDigital);
+    const newState = !isDigital;
+    setIsDigital(newState);
+    // Save to localStorage
+    localStorage.setItem('isDigital', JSON.stringify(newState));
     setSelectedSet(null);
     setCards([]);
     setSearchQuery("");
