@@ -16,6 +16,7 @@ import Navbar from './components/Navbar';
 import Explore from './pages/explore/explore';
 import Footer from './components/Footer';
 import Set from './pages/explore/set';
+import PocketSet from './pages/explore/pocketSet';
 import Notifications from './pages/notifications/notifications';
 import UserInventory from './pages/profile/UserInventory';
 import UserWishlist from './pages/profile/UserWishlist';
@@ -61,6 +62,7 @@ function AppLayout() {
           <Route path="/landing" element={!user ? <Landing /> : <Navigate to="/explore" />} />
           <Route path="/explore" element={user ? <Explore /> : <Navigate to="/landing" />} />
           <Route path="/set/:setId" element={user ? <Set /> : <Navigate to="/landing" />} />
+          <Route path="/pocket-set/:setId" element={user ? <PocketSet /> : <Navigate to="/landing" />} />
           <Route path="/friends" element={user ? <Friends /> : <Navigate to="/landing" />} />
           <Route path="/inventory" element={user ? <Inventory /> : <Navigate to="/landing" />} />
           <Route path="/trade" element={user ? <Trade /> : <Navigate to="/landing" />} />

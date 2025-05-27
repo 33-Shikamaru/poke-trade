@@ -390,8 +390,8 @@ function Explore() {
   // Function to handle set click
   const handleSetClick = (set) => {
     if (isDigital) {
-      setSelectedSet(set);
-      setCards(set.cards || []);
+      console.log("Navigating to pocket set:", set);
+      navigate(`/pocket-set/${set.name}`);
     } else {
       navigate(`/set/${set.id}`);
     }
@@ -539,6 +539,24 @@ function Explore() {
                 <FaChevronDown className="transform rotate-90" />
                 Back to Sets
               </button>
+            </div>
+            <div className="flex flex-col md:flex-row gap-8 items-start mb-8">
+              <img
+                src={selectedSet.images.logo}
+                alt={`${selectedSet.name} logo`}
+                className="w-full md:w-1/3 object-contain bg-gray-100 p-4 rounded-lg"
+              />
+              <div className="flex-1">
+                <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-300 pb-5">{selectedSet.name}</h1>
+                <div className="space-y-4 text-gray-600 dark:text-gray-400">
+                  <p>
+                    <span className="font-semibold">Series:</span> {selectedSet.series}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Total Cards:</span> {selectedSet.printedTotal}
+                  </p>
+                </div>
+              </div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 px-10">
               {cards.map((card) => (
