@@ -249,7 +249,7 @@ function Set() {
                 <img
                   src={card.images.small}
                   alt={card.name}
-                  className="w-full h-auto object-contain bg-gray-100 p-2 dark:bg-gray-500"
+                  className="w-full h-auto object-contain bg-gray-100 p-2 dark:bg-gray-200"
                 />
                 <div className="flex flex-col justify-between items-start">
                   <div className="flex items-center justify-between w-full px-3 min-h-[4rem]">

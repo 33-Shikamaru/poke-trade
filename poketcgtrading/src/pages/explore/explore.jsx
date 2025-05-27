@@ -412,7 +412,7 @@ function Explore() {
         {/* Header and Search Section */}
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-300">
-            {isDigital ? "Pokemon Pocket Sets" : "All the Sets of Cards"}
+            {isDigital ? "Pokemon Pocket Sets" : "Pokemon TCG Sets"}
           </h1>
           <div className="flex gap-4 items-center">
             {/* Toggle Switch */}
@@ -549,7 +549,7 @@ function Explore() {
                   <img
                     src={card.image}
                     alt={card.name}
-                    className="w-full h-auto object-contain bg-gray-100 p-2 dark:bg-gray-500"
+                    className="w-full h-auto object-contain bg-gray-100 p-2 dark:bg-gray-200"
                   />
                   <div className="flex flex-col justify-between items-start">
                     <div className="flex items-center justify-between w-full px-3 min-h-[4rem]">
@@ -616,7 +616,7 @@ function Explore() {
                     />
                   </div>
                   <div className="p-4">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-300 truncate dark:text-gray-600">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-300 truncate dark:text-gray-300">
                       {set.name}
                     </h2>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{set.series}</p>
