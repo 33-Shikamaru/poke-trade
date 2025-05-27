@@ -283,8 +283,15 @@ function Explore() {
         inventoryMap.set(card.cardId, { ...card });
       });
 
-      // Create new card data
-      const cardData = {
+      // Create new card data based on whether it's a digital or physical card
+      const cardData = isDigital ? {
+        cardId: card.id,
+        name: card.name,
+        image: card.image,
+        quantity: quantity,
+        setId: card.pack,
+        setName: getDisplayName(card.pack)
+      } : {
         cardId: card.id,
         name: card.name,
         image: card.images.small,
@@ -341,8 +348,15 @@ function Explore() {
         wishlistMap.set(card.cardId, { ...card });
       });
 
-      // Create new card data
-      const cardData = {
+      // Create new card data based on whether it's a digital or physical card
+      const cardData = isDigital ? {
+        cardId: card.id,
+        name: card.name,
+        image: card.image,
+        quantity: quantity,
+        setId: card.pack,
+        setName: getDisplayName(card.pack)
+      } : {
         cardId: card.id,
         name: card.name,
         image: card.images.small,

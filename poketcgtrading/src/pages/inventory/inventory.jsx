@@ -14,6 +14,7 @@ function Inventory() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchType, setSearchType] = useState("all"); // "all", "card", "set"
   const [isSearchTypeOpen, setIsSearchTypeOpen] = useState(false);
+  const [isDigital, setIsDigital] = useState(false);
   const db = getFirestore();
   const navigate = useNavigate();
 
@@ -113,8 +114,34 @@ function Inventory() {
     }
   };
 
-  // Filter inventory based on search query
+  // Filter inventory based on search query and type
   const filteredInventory = inventory.filter(card => {
+    // First filter by digital/physical
+    if (isDigital) {
+      // For digital cards, check if the card is from a Pocket set
+      const isPocketCard = card.setName.includes('Pocket') || 
+                          card.setName.includes('Genetic Apex') ||
+                          card.setName.includes('Mythical Island') ||
+                          card.setName.includes('Space-Time Smackdown') ||
+                          card.setName.includes('Triumphant Light') ||
+                          card.setName.includes('Shining Revelry') ||
+                          card.setName.includes('Celestial Guardians') ||
+                          card.setName.includes('Promo');
+      if (!isPocketCard) return false;
+    } else {
+      // For physical cards, exclude Pocket cards
+      const isPocketCard = card.setName.includes('Pocket') || 
+                          card.setName.includes('Genetic Apex') ||
+                          card.setName.includes('Mythical Island') ||
+                          card.setName.includes('Space-Time Smackdown') ||
+                          card.setName.includes('Triumphant Light') ||
+                          card.setName.includes('Shining Revelry') ||
+                          card.setName.includes('Celestial Guardians') ||
+                          card.setName.includes('Promo');
+      if (isPocketCard) return false;
+    }
+
+    // Then apply search filter
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     if (searchType === "all") {
@@ -150,68 +177,88 @@ function Inventory() {
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
           <h1 className="text-4xl font-bold">My Inventory</h1>
           
-          <div className="flex gap-2 w-full sm:w-auto">
-            {/* Search Type Dropdown */}
-            <div className="relative">
+          <div className="flex gap-4 items-center">
+            {/* Toggle Switch */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Physical</span>
               <button
-                type="button"
-                onClick={() => setIsSearchTypeOpen(!isSearchTypeOpen)}
-                className="flex items-center justify-between gap-2 h-[42px] w-32 px-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-600 text-sm whitespace-nowrap"
+                onClick={() => setIsDigital(!isDigital)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  isDigital ? 'bg-blue-600' : 'bg-gray-200'
+                }`}
               >
-                <span className="truncate">
-                  {searchType === "all" ? "All" : 
-                   searchType === "card" ? "Card Name" : "Set Name"}
-                </span>
-                <FaChevronDown className="text-xs flex-shrink-0" />
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    isDigital ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
               </button>
-              
-              {isSearchTypeOpen && (
-                <div className="absolute top-full left-0 mt-1 w-32 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 z-10">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchType("all");
-                      setIsSearchTypeOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 rounded-t-lg"
-                  >
-                    All
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchType("card");
-                      setIsSearchTypeOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600"
-                  >
-                    Card Name
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchType("set");
-                      setIsSearchTypeOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 rounded-b-lg"
-                  >
-                    Set Name
-                  </button>
-                </div>
-              )}
+              <span className="text-sm text-gray-600 dark:text-gray-400">Digital</span>
             </div>
 
-            {/* Search Input */}
-            <div className="relative flex-1 sm:w-96">
-              <input
-                type="text"
-                placeholder={`Search by ${searchType === "all" ? "card name or set" : 
-                           searchType === "card" ? "card name" : "set name"}...`}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <div className="flex gap-2 w-full sm:w-auto">
+              {/* Search Type Dropdown */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsSearchTypeOpen(!isSearchTypeOpen)}
+                  className="flex items-center justify-between gap-2 h-[42px] w-32 px-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-600 text-sm whitespace-nowrap"
+                >
+                  <span className="truncate">
+                    {searchType === "all" ? "All" : 
+                     searchType === "card" ? "Card Name" : "Set Name"}
+                  </span>
+                  <FaChevronDown className="text-xs flex-shrink-0" />
+                </button>
+                
+                {isSearchTypeOpen && (
+                  <div className="absolute top-full left-0 mt-1 w-32 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 z-10">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchType("all");
+                        setIsSearchTypeOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 rounded-t-lg"
+                    >
+                      All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchType("card");
+                        setIsSearchTypeOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600"
+                    >
+                      Card Name
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchType("set");
+                        setIsSearchTypeOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 rounded-b-lg"
+                    >
+                      Set Name
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Search Input */}
+              <div className="relative flex-1 sm:w-96">
+                <input
+                  type="text"
+                  placeholder={`Search by ${searchType === "all" ? "card name or set" : 
+                             searchType === "card" ? "card name" : "set name"}...`}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              </div>
             </div>
           </div>
         </div>
