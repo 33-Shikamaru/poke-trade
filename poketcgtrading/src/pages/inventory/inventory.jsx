@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { doc, getDoc, setDoc, getFirestore } from "firebase/firestore";
 import { auth } from "../../firebase";
 import { FaTrash, FaCheck, FaSearch, FaChevronDown, FaPlus } from "react-icons/fa";
@@ -17,6 +17,7 @@ function Inventory() {
   const [isDigital, setIsDigital] = useState(false);
   const db = getFirestore();
   const navigate = useNavigate();
+  const searchTypeRef = useRef(null);
 
   const fetchInventory = async () => {
     try {
@@ -42,6 +43,20 @@ function Inventory() {
 
   useEffect(() => {
     fetchInventory();
+  }, []);
+
+  // Add click outside handler
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (searchTypeRef.current && !searchTypeRef.current.contains(event.target)) {
+        setIsSearchTypeOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
   const updateQuantity = (cardId, change) => {
@@ -198,7 +213,7 @@ function Inventory() {
 
             <div className="flex gap-2 w-full sm:w-auto">
               {/* Search Type Dropdown */}
-              <div className="relative">
+              <div className="relative" ref={searchTypeRef}>
                 <button
                   type="button"
                   onClick={() => setIsSearchTypeOpen(!isSearchTypeOpen)}
@@ -293,25 +308,24 @@ function Inventory() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 p-2 rounded-xl">
             {filteredInventory.map((card) => (
               <div
-              key={card.cardId}
-              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 dark:bg-gray-600"
-            >
-              <img
-                src={card.image}
-                alt={card.name}
-                className="w-full h-auto object-contain p-2 bg-gray-200 dark:bg-transparent"
-              />
-              <div className="p-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-300">{card.name}</h3>
-                  <button
-                    onClick={() => deleteCard(card.cardId)}
-                    className="text-red-500 bg-gray-200 p-1 rounded hover:text-red-700"
-                  >
-                    <FaTrash />
-                  </button>
-                </div>
-              
+                key={card.cardId}
+                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 dark:bg-gray-600"
+              >
+                <img
+                  src={card.image}
+                  alt={card.name}
+                  className="w-full h-auto object-contain p-2 bg-gray-200 dark:bg-transparent"
+                />
+                <div className="p-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-300">{card.name}</h3>
+                    <button
+                      onClick={() => deleteCard(card.cardId)}
+                      className="text-red-500 bg-gray-200 p-1 rounded hover:text-red-700"
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
                   <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">{card.setName}</p>
                   <div className="flex items-center justify-between mt-2">
                     <div className="flex items-center space-x-2">

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { doc, getDoc, setDoc, getFirestore } from "firebase/firestore";
 import { auth } from "../../firebase";
 import { FaTrash, FaCheck, FaStar, FaSearch, FaChevronDown, FaPlus } from "react-icons/fa";
@@ -19,6 +19,7 @@ function Wishlist() {
   const [isDigital, setIsDigital] = useState(false);
   const db = getFirestore();
   const navigate = useNavigate();
+  const searchTypeRef = useRef(null);
 
   useEffect(() => {
     const fetchWishlist = async () => {
@@ -45,6 +46,20 @@ function Wishlist() {
     };
 
     fetchWishlist();
+  }, []);
+
+  // Add click outside handler
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (searchTypeRef.current && !searchTypeRef.current.contains(event.target)) {
+        setIsSearchTypeOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
   const updateQuantity = (cardId, change) => {
@@ -296,7 +311,7 @@ function Wishlist() {
                 <button
                   onClick={() => setIsDigital(!isDigital)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                    isDigital ? 'bg-blue-600' : 'bg-gray-200'
+                    isDigital ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-600'
                   }`}
                 >
                   <span
@@ -310,7 +325,7 @@ function Wishlist() {
 
               <div className="flex gap-2 w-full sm:w-auto">
                 {/* Search Type Dropdown */}
-                <div className="relative">
+                <div className="relative" ref={searchTypeRef}>
                   <button
                     type="button"
                     onClick={() => setIsSearchTypeOpen(!isSearchTypeOpen)}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../../firebase";
@@ -33,6 +33,21 @@ function Explore() {
     return savedState ? JSON.parse(savedState) : false;
   });
   const [selectedSet, setSelectedSet] = useState(null);
+  const searchTypeRef = useRef(null);
+
+  // Add click outside handler
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (searchTypeRef.current && !searchTypeRef.current.contains(event.target)) {
+        setIsSearchTypeOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // Define the valid pocket sets with their corresponding images
   const pocketSets = [
@@ -441,7 +456,7 @@ function Explore() {
             </div>
             <form onSubmit={handleSearch} className="flex gap-2 w-full sm:w-auto">
               {/* Search Type Dropdown */}
-              <div className="relative">
+              <div className="relative" ref={searchTypeRef}>
                 <button
                   type="button"
                   onClick={() => setIsSearchTypeOpen(!isSearchTypeOpen)}
