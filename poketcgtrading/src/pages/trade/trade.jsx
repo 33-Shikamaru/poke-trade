@@ -11,6 +11,18 @@ function Trade() {
   const [loading, setLoading] = useState(true);
   const [expandedChat, setExpandedChat] = useState(null);
 
+  // Add function to determine if a card is digital
+  const isDigitalCard = (setName) => {
+    return setName?.includes('Pocket') || 
+           setName?.includes('Genetic Apex') ||
+           setName?.includes('Mythical Island') ||
+           setName?.includes('Space-Time Smackdown') ||
+           setName?.includes('Triumphant Light') ||
+           setName?.includes('Shining Revelry') ||
+           setName?.includes('Celestial Guardians') ||
+           setName?.includes('Promo');
+  };
+
   useEffect(() => {
     console.log("hello");
     const fetchTrades = async () => {
@@ -304,7 +316,21 @@ function Trade() {
   return (
     <div className="min-h-screen dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-white">Your Trades</h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Your Trades</h1>
+          
+          {/* Legend */}
+          <div className="flex items-center gap-8">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded border-2 border-blue-400 dark:border-blue-400"></div>
+              <span className="text-blue-400 dark:text-blue-400 font-medium">Digital Card</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded border-2 border-red-400 dark:border-red-400"></div>
+              <span className="text-red-400 dark:text-red-400 font-medium">Physical Card</span>
+            </div>
+          </div>
+        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {trades.map((trade) => (
@@ -345,7 +371,11 @@ function Trade() {
                 <div className="flex justify-center gap-4 mb-4">
                   {/* Offered Card */}
                   <div className="flex flex-col items-center">
-                    <div className="w-32 h-44 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
+                    <div className={`w-32 h-44 rounded-lg overflow-hidden border-2 p-1 ${
+                      isDigitalCard(trade.offeredCards[0]?.setName) 
+                        ? 'border-blue-400 dark:border-blue-400' 
+                        : 'border-red-300 dark:border-red-400'
+                    }`}>
                       <img 
                         src={trade.offeredCards[0]?.image || 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png'} 
                         alt={trade.offeredCards[0]?.name || 'Offered Card'}
@@ -355,10 +385,21 @@ function Trade() {
                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
                       {trade.isSender ? 'You send' : 'You receive'}
                     </p>
+                    <p className={`text-xs font-medium mt-1 ${
+                      isDigitalCard(trade.offeredCards[0]?.setName)
+                        ? 'text-blue-400 dark:text-blue-400'
+                        : 'text-red-300 dark:text-red-400'
+                    }`}>
+                      {isDigitalCard(trade.offeredCards[0]?.setName) ? 'Digital Card' : 'Physical Card'}
+                    </p>
                   </div>
                   {/* Target Card */}
                   <div className="flex flex-col items-center">
-                    <div className="w-32 h-44 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
+                    <div className={`w-32 h-44 rounded-lg overflow-hidden border-2 p-1 ${
+                      isDigitalCard(trade.targetCard?.setName) 
+                        ? 'border-blue-400 dark:border-blue-400' 
+                        : 'border-red-400 dark:border-red-400'
+                    }`}>
                       <img 
                         src={trade.targetCard?.image || 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png'} 
                         alt={trade.targetCard?.name || 'Target Card'}
@@ -367,6 +408,13 @@ function Trade() {
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
                       {trade.isSender ? 'You receive' : 'You send'}
+                    </p>
+                    <p className={`text-xs font-medium mt-1 ${
+                      isDigitalCard(trade.targetCard?.setName)
+                        ? 'text-blue-400 dark:text-blue-400'
+                        : 'text-red-400 dark:text-red-400'
+                    }`}>
+                      {isDigitalCard(trade.targetCard?.setName) ? 'Digital Card' : 'Physical Card'}
                     </p>
                   </div>
                 </div>
