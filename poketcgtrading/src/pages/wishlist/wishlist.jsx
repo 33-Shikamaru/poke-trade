@@ -382,7 +382,7 @@ function Wishlist() {
                 return (
                   <div
                     key={cardId}
-                    className="shadow-[0_0_15px_3px_rgba(255,0,0,0.3)] hover:shadow-[0_0_25px_5px_rgba(255,0,0,0.5)] bg-white rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 dark:bg-gray-600 dark:shadow-[0_0_10px_2px_rgba(255,255,255,0.5)] dark:hover:shadow-[0_0_20px_2px_rgba(255,255,255,0.8)]"
+                    className="shadow-[0_0_15px_3px_rgba(255,0,0,0.3)] hover:shadow-[0_0_25px_5px_rgba(255,0,0,0.5)] bg-white rounded-lg overflow-hidden transition-shadow duration-300 dark:bg-gray-600 dark:shadow-[0_0_10px_2px_rgba(255,255,255,0.5)] dark:hover:shadow-[0_0_20px_2px_rgba(255,255,255,0.8)]"
                   >
                     <img
                       src={card.image}
@@ -460,7 +460,7 @@ function Wishlist() {
             {filteredWishlist.map((card) => (
               <div
                 key={card.cardId}
-                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 dark:bg-gray-600"
+                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 dark:bg-gray-600 transform hover:-translate-y-1 hover:scale-[1.02]"
               >
                 <img
                   src={card.image}
