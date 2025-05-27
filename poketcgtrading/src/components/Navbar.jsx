@@ -11,7 +11,7 @@ import UserMenu from './UserMenu';
 import { auth } from "../firebase";
 import { signOut } from "firebase/auth";
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { collection, query, where, onSnapshot, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, getDoc, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import Gengar from '../assets/gengar.png';
 import Avatar1 from '../assets/avatars/avatar1.png';
@@ -35,6 +35,8 @@ const avatarOptions = [
   { image: Avatar8, name: "avatar8" },
   { image: Avatar9, name: "avatar9" }
 ];
+
+const NOTIFICATION_UPDATE_EVENT = 'notificationUpdate';
 
 function Navbar() {
   const [user] = useAuthState(auth);
@@ -94,10 +96,10 @@ function Navbar() {
       
       const count = snapshot.docs.filter(doc => {
         const data = doc.data();
-        return !data.type?.includes('_accepted') && 
-               !data.type?.includes('_declined') && 
-               data.type !== 'message' &&
-               !data.type?.includes('message');
+        // Only count unread notifications that are not status updates
+        return !data.read && 
+               data.type !== 'friend_request_accepted' && 
+               data.type !== 'friend_request_declined';
       }).length;
       
       if (count !== unreadCount) {
@@ -126,6 +128,36 @@ function Navbar() {
 
     return () => unsubscribe();
   }, [user]);
+
+  useEffect(() => {
+    if (!auth.currentUser) return;
+
+    // Set up real-time listener for unread notifications
+    const notificationsRef = collection(db, 'users', auth.currentUser.uid, 'notifications');
+    const q = query(
+      notificationsRef,
+      where('read', '==', false)
+    );
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      setUnreadCount(querySnapshot.size);
+    });
+
+    // Listen for notification update events
+    const handleNotificationUpdate = () => {
+      // Force a refresh of the unread count
+      getDocs(q).then(snapshot => {
+        setUnreadCount(snapshot.size);
+      });
+    };
+
+    window.addEventListener(NOTIFICATION_UPDATE_EVENT, handleNotificationUpdate);
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener(NOTIFICATION_UPDATE_EVENT, handleNotificationUpdate);
+    };
+  }, []);
 
   const renderAvatar = () => {
     if (!userData?.photoURL) return Gengar;

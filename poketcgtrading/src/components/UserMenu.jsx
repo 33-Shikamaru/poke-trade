@@ -92,6 +92,11 @@ const UserMenu = ({ isOpen, onClose, userData, setUserData }) => {
     return userData.photoURL;
   };
 
+  const handleViewProfile = () => {
+    navigate('/profile');
+    onClose(); // Close the modal when navigating to profile
+  };
+
   return (
     <>
       {/* Backdrop */}
@@ -149,7 +154,7 @@ const UserMenu = ({ isOpen, onClose, userData, setUserData }) => {
         <div className="p-3 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
           <button 
             className="w-full text-center text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-            onClick={() => navigate('/profile')}
+            onClick={handleViewProfile}
           >
             View Profile Settings
           </button>

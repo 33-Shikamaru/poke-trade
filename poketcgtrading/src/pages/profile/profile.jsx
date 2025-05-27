@@ -519,7 +519,7 @@ function Profile() {
               {!isOwnProfile && (
                 <div className="flex gap-2 w-full max-w-2xl">
                   <button
-                    onClick={handleAddFriend}
+                    onClick={isFriend ? handleRemoveFriend : handleAddFriend}
                     className={`flex-1 flex items-center justify-center gap-2 px-6 py-2 rounded-lg ${
                       isLoading
                         ? 'bg-gray-400 cursor-not-allowed'

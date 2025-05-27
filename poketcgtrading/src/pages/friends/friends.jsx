@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { doc, getDoc, getDocs, collection, query, where, writeBatch, setDoc } from 'firebase/firestore';
+import { doc, getDoc, getDocs, collection, query, setDoc, updateDoc, arrayRemove } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
 import Gengar from '../../assets/gengar.png'; // Default avatar
-import { FaSearch, FaUserPlus, FaCheckCircle } from 'react-icons/fa'; // Icons
+import { FaSearch, FaUserPlus, FaCheckCircle, FaUserMinus } from 'react-icons/fa'; // Icons
 import Avatar1 from '../../assets/avatars/avatar1.png';
 import Avatar2 from '../../assets/avatars/avatar2.png';
 import Avatar3 from '../../assets/avatars/avatar3.png';
@@ -194,7 +194,7 @@ function Friends() {
     setSentRequests(prev => ({ ...prev, [targetUserId]: true }));
 
     try {
-      // Check if notifications subcollection exists
+      // Check if notifications sub-collection exists
       const recipientNotificationsRef = collection(db, 'users', targetUserId, 'notifications');
       const notificationsQuery = query(recipientNotificationsRef);
       const notificationsSnapshot = await getDocs(notificationsQuery);
@@ -220,6 +220,49 @@ function Friends() {
         delete newState[targetUserId];
         return newState;
       });
+    }
+  };
+
+  const handleRemoveFriend = async (friendId, friendName, e) => {
+    e.stopPropagation(); // Prevent navigation to profile
+    if (!window.confirm(`Are you sure you want to remove ${friendName} from your friends list?`)) {
+      return;
+    }
+
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) return;
+
+      // Remove friend from both users' friend lists
+      const currentUserRef = doc(db, 'users', currentUser.uid);
+      const friendUserRef = doc(db, 'users', friendId);
+      
+      await updateDoc(currentUserRef, {
+        friends: arrayRemove(friendId)
+      });
+      
+      await updateDoc(friendUserRef, {
+        friends: arrayRemove(currentUser.uid)
+      });
+
+      // Create a notification for the other user
+      const friendNotificationsRef = collection(db, 'users', friendId, 'notifications');
+      const newNotificationRef = doc(friendNotificationsRef);
+      await setDoc(newNotificationRef, {
+        type: 'friend_removed',
+        senderId: currentUser.uid,
+        senderName: currentUser.displayName || currentUser.email,
+        message: `${currentUser.displayName || currentUser.email} removed you from their friends list`,
+        timestamp: new Date(),
+        read: false
+      });
+
+      // Update local state
+      setFriends(prevFriends => prevFriends.filter(friend => friend.userId !== friendId));
+
+    } catch (error) {
+      console.error('Error removing friend:', error);
+      alert('Failed to remove friend. Please try again.');
     }
   };
 
@@ -356,51 +399,55 @@ function Friends() {
                 {friends.map((friend) => (
                   <div
                     key={friend.userId}
-                    className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer"
-                    onClick={() => navigate(`/profile/${friend.userId}`)}
+                    className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
                   >
-                    <div className="flex items-center space-x-4">
-                      {renderFriendAvatar(friend)}
-                      <div>
-                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                          {friend.displayName}
-                        </h2>
-                        <p className="text-gray-600 dark:text-gray-400 text-sm">
-                          {friend.email}
-                        </p>
+                    <div 
+                      className="cursor-pointer"
+                      onClick={() => navigate(`/profile/${friend.userId}`)}
+                    >
+                      <div className="flex items-center space-x-4">
+                        {renderFriendAvatar(friend)}
+                        <div>
+                          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                            {friend.displayName}
+                          </h2>
+                          <p className="text-gray-600 dark:text-gray-400 text-sm">
+                            {friend.email}
+                          </p>
+                        </div>
                       </div>
+                      <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                        <div>
+                          <p className="text-xl font-bold text-gray-900 dark:text-white">
+                            {friend.stats.tradeComplete}
+                          </p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                            Trades
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xl font-bold text-gray-900 dark:text-white">
+                            {friend.stats.friends}
+                          </p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                            Friends
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xl font-bold text-gray-900 dark:text-white">
+                            {friend.stats.cards}
+                          </p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                            Cards
+                          </p>
+                        </div>
+                      </div>
+                      {friend.bio && (
+                        <p className="mt-4 text-gray-600 dark:text-gray-400 text-sm italic">
+                          "{friend.bio.substring(0, 60)}{friend.bio.length > 60 ? '...' : ''}"
+                        </p>
+                      )}
                     </div>
-                    <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-                      <div>
-                        <p className="text-xl font-bold text-gray-900 dark:text-white">
-                          {friend.stats.tradeComplete}
-                        </p>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
-                          Trades
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xl font-bold text-gray-900 dark:text-white">
-                          {friend.stats.friends}
-                        </p>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
-                          Friends
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xl font-bold text-gray-900 dark:text-white">
-                          {friend.stats.cards}
-                        </p>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
-                          Cards
-                        </p>
-                      </div>
-                    </div>
-                    {friend.bio && (
-                      <p className="mt-4 text-gray-600 dark:text-gray-400 text-sm italic">
-                        "{friend.bio.substring(0, 60)}{friend.bio.length > 60 ? '...' : ''}"
-                      </p>
-                    )}
                   </div>
                 ))}
               </div>

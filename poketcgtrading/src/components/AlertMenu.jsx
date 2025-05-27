@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IoClose } from "react-icons/io5";
-import { MdSwapHoriz, MdPeople, MdCheck, MdClose } from "react-icons/md";
-import { doc, collection, query, where, orderBy, limit, getDocs, updateDoc, deleteDoc, arrayUnion, setDoc } from 'firebase/firestore';
+import { MdSwapHoriz, MdPeople, MdMessage, MdCheck, MdClose } from "react-icons/md";
+import { doc, collection, query, orderBy, limit, onSnapshot, updateDoc, arrayUnion, setDoc, getDocs, deleteDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
+
+// Create a custom event for notification updates
+const NOTIFICATION_UPDATE_EVENT = 'notificationUpdate';
 
 const AlertMenu = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
@@ -11,67 +14,36 @@ const AlertMenu = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchNotifications = async () => {
-    if (!auth.currentUser) {
-      console.log('No current user found');
-      setError('Please sign in to view notifications');
+  useEffect(() => {
+    if (!isOpen || !auth.currentUser) {
       setLoading(false);
       return;
     }
-    
-    try {
-      setError(null);
-      console.log('Fetching notifications for user:', auth.currentUser.uid);
-      const userNotificationsRef = collection(db, 'users', auth.currentUser.uid, 'notifications');
-      
-      // Get all notifications for the current user
-      const querySnapshot = await getDocs(userNotificationsRef);
-      console.log('Query snapshot size:', querySnapshot.size);
-      console.log('Raw query snapshot:', querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      
-      if (querySnapshot.empty) {
-        console.log('No notifications found');
-        setNotifications([]);
-        return;
-      }
-      
-      const fetchedNotifications = querySnapshot.docs
-        .map(doc => {
-          const data = doc.data();
-          console.log('Raw notification data:', data);
-          return {
-            id: doc.id,
-            ...data,
-            timestamp: data.timestamp?.toDate?.() || new Date(data.timestamp)
-          };
-        })
-        .filter(notification => {
-          // Filter out status update notifications
-          const shouldKeep = !notification.type?.includes('_accepted') && !notification.type?.includes('_declined');
-          console.log('Filtering notification:', notification.type, 'shouldKeep:', shouldKeep);
-          return shouldKeep;
-        })
-        .sort((a, b) => b.timestamp - a.timestamp)
-        .slice(0, 5);
-      
-      console.log('Final processed notifications:', fetchedNotifications);
+
+    // Set up real-time listener for notifications
+    const notificationsRef = collection(db, 'users', auth.currentUser.uid, 'notifications');
+    const q = query(
+      notificationsRef,
+      orderBy('timestamp', 'desc'),
+      limit(3) // Only get the 3 most recent notifications
+    );
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const fetchedNotifications = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        timestamp: doc.data().timestamp?.toDate?.() || new Date(doc.data().timestamp)
+      }));
       setNotifications(fetchedNotifications);
-    } catch (error) {
+      setLoading(false);
+    }, (error) => {
       console.error('Error fetching notifications:', error);
       setError('Error loading notifications. Please try again.');
-      setNotifications([]);
-    } finally {
       setLoading(false);
-    }
-  };
+    });
 
-  // Fetch notifications whenever the AlertMenu is opened
-  // This ensures we always have fresh notifications data when the menu is visible
-  useEffect(() => {
-    if (isOpen) {
-      console.log('AlertMenu opened, fetching notifications...');
-      fetchNotifications();
-    }
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
   }, [isOpen]);
 
   const handleAlertClick = () => {
@@ -91,7 +63,6 @@ const AlertMenu = ({ isOpen, onClose }) => {
       // Handle different types of accept actions
       switch (notification.type) {
         case 'trade_request':
-          // Navigate to trade page with the trade ID
           navigate(`/trade/${notification.senderId}`);
           break;
         case 'friend_request':
@@ -106,8 +77,8 @@ const AlertMenu = ({ isOpen, onClose }) => {
           await updateDoc(senderUserRef, {
             friends: arrayUnion(auth.currentUser.uid)
           });
-          
-          // Create a new notification for the sender
+
+          // Create a notification for the sender
           const senderNotificationsRef = collection(db, 'users', notification.senderId, 'notifications');
           const newNotificationRef = doc(senderNotificationsRef);
           await setDoc(newNotificationRef, {
@@ -120,11 +91,9 @@ const AlertMenu = ({ isOpen, onClose }) => {
           });
           break;
       }
-
-      // Remove the notification from the list
-      setNotifications(prev => prev.filter(n => n.id !== notification.id));
     } catch (error) {
       console.error('Error accepting notification:', error);
+      setError('Error accepting notification. Please try again.');
     }
   };
 
@@ -137,27 +106,20 @@ const AlertMenu = ({ isOpen, onClose }) => {
         status: 'declined'
       });
 
-      // Handle different types of decline actions
-      switch (notification.type) {
-        case 'friend_request':
-          // Create a new notification for the sender
-          const senderNotificationsRef = collection(db, 'users', notification.senderId, 'notifications');
-          const newNotificationRef = doc(senderNotificationsRef);
-          await setDoc(newNotificationRef, {
-            type: 'friend_request_declined',
-            senderId: auth.currentUser.uid,
-            senderName: auth.currentUser.displayName || auth.currentUser.email,
-            message: `${auth.currentUser.displayName || auth.currentUser.email} declined your friend request`,
-            timestamp: new Date(),
-            read: false
-          });
-          break;
-      }
-
-      // Remove the notification from the list
-      setNotifications(prev => prev.filter(n => n.id !== notification.id));
+      // Create a notification for the sender
+      const senderNotificationsRef = collection(db, 'users', notification.senderId, 'notifications');
+      const newNotificationRef = doc(senderNotificationsRef);
+      await setDoc(newNotificationRef, {
+        type: 'friend_request_declined',
+        senderId: auth.currentUser.uid,
+        senderName: auth.currentUser.displayName || auth.currentUser.email,
+        message: `${auth.currentUser.displayName || auth.currentUser.email} declined your friend request`,
+        timestamp: new Date(),
+        read: false
+      });
     } catch (error) {
       console.error('Error declining notification:', error);
+      setError('Error declining notification. Please try again.');
     }
   };
 
@@ -166,9 +128,9 @@ const AlertMenu = ({ isOpen, onClose }) => {
       case 'trade_request':
         return <MdSwapHoriz className="text-blue-500 dark:text-blue-400 text-xl" />;
       case 'friend_request':
-      case 'friend_request_accepted':
-      case 'friend_request_declined':
         return <MdPeople className="text-green-500 dark:text-green-400 text-xl" />;
+      case 'message':
+        return <MdMessage className="text-purple-500 dark:text-purple-400 text-xl" />;
       default:
         return null;
     }
@@ -203,26 +165,36 @@ const AlertMenu = ({ isOpen, onClose }) => {
 
   const clearAllNotifications = async () => {
     if (!auth.currentUser) {
-      setError('Please sign in to clear notifications');
+      setError('Please sign in to mark notifications as read');
       return;
     }
 
     try {
       setError(null);
-      const userNotificationsRef = collection(db, 'users', auth.currentUser.uid, 'notifications');
-      const querySnapshot = await getDocs(userNotificationsRef);
-      
-      // Delete each notification
-      const deletePromises = querySnapshot.docs.map(doc => 
-        deleteDoc(doc.ref)
+      // Mark all displayed notifications as read
+      const updatePromises = notifications.map(notification => 
+        updateDoc(doc(db, 'users', auth.currentUser.uid, 'notifications', notification.id), {
+          read: true
+        })
       );
       
-      await Promise.all(deletePromises);
-      console.log('All notifications cleared successfully');
-      setNotifications([]);
+      await Promise.all(updatePromises);
+      console.log('Notifications marked as read successfully');
+      
+      // Update local state to mark notifications as read
+      setNotifications(prevNotifications => 
+        prevNotifications.map(notification => ({
+          ...notification,
+          read: true
+        }))
+      );
+
+      // Dispatch event to update notification count
+      const event = new CustomEvent(NOTIFICATION_UPDATE_EVENT);
+      window.dispatchEvent(event);
     } catch (error) {
-      console.error('Error clearing notifications:', error);
-      setError('Error clearing notifications. Please try again.');
+      console.error('Error marking notifications as read:', error);
+      setError('Error marking notifications as read. Please try again.');
     }
   };
 
@@ -246,9 +218,9 @@ const AlertMenu = ({ isOpen, onClose }) => {
             {notifications.length > 0 && (
               <button 
                 onClick={clearAllNotifications}
-                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+                className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
               >
-                Clear All ({notifications.length})
+                Read All ({notifications.length})
               </button>
             )}
             <button 
@@ -274,67 +246,66 @@ const AlertMenu = ({ isOpen, onClose }) => {
               <p>No new notifications</p>
             </div>
           ) : (
-            notifications.map((notification) => {
-              console.log('Rendering notification:', notification);
-              return (
-                <div
-                  key={notification.id}
-                  className="p-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 mt-1">
-                      {getNotificationIcon(notification.type)}
+            notifications.map((notification) => (
+              <div
+                key={notification.id}
+                className={`p-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 ${
+                  !notification.read ? 'bg-blue-50 dark:bg-gray-800' : ''
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 mt-1">
+                    {getNotificationIcon(notification.type)}
+                  </div>
+                  <div className="flex-grow">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium dark:text-gray-200">
+                        {getNotificationTitle(notification.type)}
+                      </p>
+                      {!notification.read && (
+                        <span className="w-2 h-2 rounded-full bg-red-500 dark:bg-red-300 flex-shrink-0"></span>
+                      )}
                     </div>
-                    <div className="flex-grow">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium dark:text-gray-200">
-                          {getNotificationTitle(notification.type)}
-                        </p>
-                        {!notification.read && (
-                          <span className="w-2 h-2 rounded-full bg-red-500 dark:bg-red-300 flex-shrink-0"></span>
-                        )}
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {notification.message}
+                    </p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                      {formatTime(notification.timestamp)}
+                    </p>
+                    
+                    {/* Action Buttons */}
+                    {(notification.type === 'trade_request' || notification.type === 'friend_request') && 
+                     notification.status === 'pending' && (
+                      <div className="flex gap-2 mt-2">
+                        <button
+                          onClick={() => handleAccept(notification)}
+                          className="flex items-center gap-1 px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
+                        >
+                          <MdCheck /> Accept
+                        </button>
+                        <button
+                          onClick={() => handleDecline(notification)}
+                          className="flex items-center gap-1 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+                        >
+                          <MdClose /> Decline
+                        </button>
                       </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {notification.message || 'No message available'}
-                      </p>
-                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                        {formatTime(notification.timestamp)}
-                      </p>
-                      
-                      {/* Action Buttons */}
-                      {(notification.type === 'trade_request' || notification.type === 'friend_request') && 
-                       !notification.status && (
-                        <div className="flex gap-2 mt-2">
-                          <button
-                            onClick={() => handleAccept(notification)}
-                            className="flex items-center gap-1 px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
-                          >
-                            <MdCheck /> Accept
-                          </button>
-                          <button
-                            onClick={() => handleDecline(notification)}
-                            className="flex items-center gap-1 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
-                          >
-                            <MdClose /> Decline
-                          </button>
-                        </div>
-                      )}
-                      
-                      {/* Status */}
-                      {notification.status && (
-                        <div className={`mt-2 text-sm ${
-                          notification.status === 'accepted' 
-                            ? 'text-green-500 dark:text-green-400' 
-                            : 'text-red-500 dark:text-red-400'
-                        }`}>
-                          {notification.status === 'accepted' ? 'Accepted' : 'Declined'}
-                        </div>
-                      )}
-                    </div>
+                    )}
+                    
+                    {/* Status */}
+                    {notification.status && notification.status !== 'pending' && (
+                      <div className={`mt-2 text-sm ${
+                        notification.status === 'accepted' 
+                          ? 'text-green-500 dark:text-green-400' 
+                          : 'text-red-500 dark:text-red-400'
+                      }`}>
+                        {notification.status === 'accepted' ? 'Accepted' : 'Declined'}
+                      </div>
+                    )}
                   </div>
                 </div>
-              );
-            })
+              </div>
+            ))
           )}
         </div>
         
