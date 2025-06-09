@@ -16,6 +16,7 @@ function Wishlist() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchType, setSearchType] = useState("all"); // "all", "card", "set"
   const [isSearchTypeOpen, setIsSearchTypeOpen] = useState(false);
+  const [isCardTypeOpen, setIsCardTypeOpen] = useState(false);
   const [isDigital, setIsDigital] = useState(() => {
     // Initialize from localStorage, default to false if not set
     const savedState = localStorage.getItem('isDigital');
@@ -24,6 +25,7 @@ function Wishlist() {
   const db = getFirestore();
   const navigate = useNavigate();
   const searchTypeRef = useRef(null);
+  const cardTypeRef = useRef(null);
 
   useEffect(() => {
     const fetchWishlist = async () => {
@@ -58,6 +60,9 @@ function Wishlist() {
       if (searchTypeRef.current && !searchTypeRef.current.contains(event.target)) {
         setIsSearchTypeOpen(false);
       }
+      if (cardTypeRef.current && !cardTypeRef.current.contains(event.target)) {
+        setIsCardTypeOpen(false);
+      }
     }
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -67,11 +72,12 @@ function Wishlist() {
   }, []);
 
   // Function to handle digital/physical toggle
-  const handleToggle = () => {
-    const newState = !isDigital;
+  const handleCardTypeChange = (type) => {
+    const newState = type === 'digital';
     setIsDigital(newState);
     // Save to localStorage
     localStorage.setItem('isDigital', JSON.stringify(newState));
+    setIsCardTypeOpen(false);
   };
 
   const updateQuantity = (cardId, change) => {
@@ -317,25 +323,40 @@ function Wishlist() {
             <h1 className="text-4xl font-bold dark:text-gray-00">Favorite Cards</h1>
             
             <div className="flex gap-4 items-center">
-              {/* Toggle Switch */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Physical</span>
-                <button
-                  onClick={handleToggle}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                    isDigital ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-600'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      isDigital ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-                <span className="text-sm text-gray-600 dark:text-gray-400">Digital</span>
-              </div>
-
+              {/* Card Type Dropdown */}
               <div className="flex gap-2 w-full sm:w-auto">
+                <div className="relative" ref={cardTypeRef}>
+                  <button
+                    type="button"
+                    onClick={() => setIsCardTypeOpen(!isCardTypeOpen)}
+                    className="flex items-center justify-between gap-2 h-[42px] w-32 px-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-600 text-sm whitespace-nowrap"
+                  >
+                    <span className="truncate">
+                      {isDigital ? "Digital" : "Physical"}
+                    </span>
+                    <FaChevronDown className="text-xs flex-shrink-0" />
+                  </button>
+                  
+                  {isCardTypeOpen && (
+                    <div className="absolute top-full left-0 mt-1 w-32 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 z-10">
+                      <button
+                        type="button"
+                        onClick={() => handleCardTypeChange('physical')}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 rounded-t-lg"
+                      >
+                        Physical
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleCardTypeChange('digital')}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 rounded-b-lg"
+                      >
+                        Digital
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 {/* Search Type Dropdown */}
                 <div className="relative" ref={searchTypeRef}>
                   <button

@@ -34,12 +34,17 @@ function Explore() {
   });
   const [selectedSet, setSelectedSet] = useState(null);
   const searchTypeRef = useRef(null);
+  const cardTypeRef = useRef(null);
+  const [isCardTypeOpen, setIsCardTypeOpen] = useState(false);
 
-  // Add click outside handler
+  // Add click outside handler for both dropdowns
   useEffect(() => {
     function handleClickOutside(event) {
       if (searchTypeRef.current && !searchTypeRef.current.contains(event.target)) {
         setIsSearchTypeOpen(false);
+      }
+      if (cardTypeRef.current && !cardTypeRef.current.contains(event.target)) {
+        setIsCardTypeOpen(false);
       }
     }
 
@@ -91,17 +96,32 @@ function Explore() {
     }));
   };
 
+  // Handle search input change
+  const handleSearchChange = (e) => {
+    setTempSearchQuery(e.target.value);
+  };
+
   // Handle search submission
   const handleSearch = (e) => {
     e.preventDefault();
+    setLoading(true);
     setSearchQuery(tempSearchQuery);
+  };
+
+  // Handle key press
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      setLoading(true);
+      setSearchQuery(tempSearchQuery);
+    }
   };
 
   // Initial fetch of all sets
   useEffect(() => {
     const fetchSets = async () => {
       try {
-        setLoading(true);
+        setLoading(true); // Set loading state for initial load
         if (isDigital) {
           // Fetch digital sets from Pocket JSON
           const response = await fetch('https://raw.githubusercontent.com/chase-manning/pokemon-tcg-pocket-cards/refs/heads/main/v4.json');
@@ -186,11 +206,11 @@ function Explore() {
           setSets(sortedSets);
           setFilteredSets(sortedSets);
         }
-        setLoading(false);
       } catch (err) {
         console.error("Error fetching sets:", err);
         setError(err.message);
-        setLoading(false);
+      } finally {
+        setLoading(false); // Clear loading state after sets are loaded or if there's an error
       }
     };
 
@@ -200,85 +220,131 @@ function Explore() {
   // Fetch cards when searching by card name
   useEffect(() => {
     const fetchCards = async () => {
-      if (searchType === "card" && searchQuery) {
-        setLoading(true);
+      if (searchQuery) { // Only perform search if there's a query
+        setLoading(true); // Set loading state at the start of search
         try {
-          console.log("Fetching cards with query:", searchQuery);
-          const response = await fetch(
-            `https://api.pokemontcg.io/v2/cards?q=name:"*${searchQuery}*"`,
-            {
-              headers: {
-                "X-Api-Key": process.env.REACT_APP_POKEMON_TCG_API_KEY,
-              },
+          if (searchType === "card" || searchType === "all") {
+            if (isDigital) {
+              // Handle digital card search
+              const query = searchQuery.toLowerCase();
+              
+              // Filter cards from all pocket sets
+              const matchingCards = [];
+              const matchingSetNames = new Set();
+              
+              sets.forEach(set => {
+                if (set.cards) {
+                  const setCards = set.cards.filter(card => 
+                    card.name.toLowerCase().includes(query)
+                  );
+                  
+                  if (setCards.length > 0) {
+                    matchingCards.push(...setCards);
+                    matchingSetNames.add(set.name);
+                  }
+                }
+              });
+
+              if (searchType === "card") {
+                // For card name search, only show sets containing matching cards
+                const filteredSets = sets.filter(set => matchingSetNames.has(set.name));
+                setFilteredSets(filteredSets);
+                setCards(matchingCards);
+              } else {
+                // For "all" search, also check set names
+                const setMatches = sets.filter(set => 
+                  set.name.toLowerCase().includes(query)
+                );
+                
+                // Combine sets from both card matches and set name matches
+                const combinedSets = new Set([
+                  ...sets.filter(set => matchingSetNames.has(set.name)),
+                  ...setMatches
+                ]);
+                
+                setFilteredSets(Array.from(combinedSets));
+                setCards(matchingCards);
+              }
+            } else {
+              // Handle physical card search
+              const response = await fetch(
+                `https://api.pokemontcg.io/v2/cards?q=name:"*${searchQuery}*"`,
+                {
+                  headers: {
+                    "X-Api-Key": process.env.REACT_APP_POKEMON_TCG_API_KEY,
+                  },
+                }
+              );
+
+              if (!response.ok) {
+                throw new Error(`Failed to fetch cards: ${response.status} ${response.statusText}`);
+              }
+
+              const data = await response.json();
+              
+              if (!data.data) {
+                throw new Error("Invalid response format from API");
+              }
+
+              // Get unique set IDs from the cards that match the search
+              const matchingSetIds = new Set(data.data.map(card => card.set.id));
+              
+              if (searchType === "card") {
+                // For card name search, only show sets containing matching cards
+                const filteredSets = sets.filter(set => matchingSetIds.has(set.id));
+                setFilteredSets(filteredSets);
+                setCards(data.data);
+              } else {
+                // For "all" search, also check set names
+                const query = searchQuery.toLowerCase();
+                const setMatches = sets.filter(set => 
+                  set.name.toLowerCase().includes(query)
+                );
+                
+                // Combine sets from both card matches and set name matches
+                const combinedSets = new Set([
+                  ...sets.filter(set => matchingSetIds.has(set.id)),
+                  ...setMatches
+                ]);
+                
+                setFilteredSets(Array.from(combinedSets));
+                setCards(data.data);
+              }
             }
-          );
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            console.error("API Error Response:", errorData);
-            throw new Error(`Failed to fetch cards: ${response.status} ${response.statusText}`);
+          } else if (searchType === "set") {
+            // For set name search, only filter sets by name
+            const query = searchQuery.toLowerCase();
+            const filtered = sets.filter(set => 
+              set.name.toLowerCase().includes(query)
+            );
+            setFilteredSets(filtered);
+            setCards([]);
           }
-
-          const data = await response.json();
-          console.log("Cards data received:", data);
-          
-          if (!data.data) {
-            throw new Error("Invalid response format from API");
-          }
-
-          const filteredCards = data.data.filter(card => 
-            card.name.toLowerCase().includes(searchQuery.toLowerCase())
-          );
-
-          setCards(filteredCards);
-          setLoading(false);
         } catch (err) {
-          console.error("Error fetching cards:", err);
+          console.error("Error during search:", err);
           setError(err.message);
-          setLoading(false);
+          
+          // If there's an error during card search, fall back to set name search
+          if (searchType === "card" || searchType === "all") {
+            const query = searchQuery.toLowerCase();
+            const filtered = sets.filter(set => 
+              set.name.toLowerCase().includes(query)
+            );
+            setFilteredSets(filtered);
+            setCards([]);
+          }
+        } finally {
+          setLoading(false); // Clear loading state after search completes
         }
       } else {
+        // If no search query, show all sets
+        setFilteredSets(sets);
         setCards([]);
       }
     };
 
     fetchCards();
-  }, [searchQuery, searchType]);
-
-  // Fetch sets when searching by set name
-  useEffect(() => {
-    const fetchSetsBySearch = async () => {
-      if (searchType === "set" && searchQuery) {
-        setLoading(true);
-        try {
-          // Filter sets that contain the search query anywhere in their name
-          const query = searchQuery.toLowerCase();
-          const filtered = sets.filter(set => 
-            set.name.toLowerCase().includes(query)
-          );
-          
-          setFilteredSets(filtered);
-          setLoading(false);
-        } catch (err) {
-          console.error("Error filtering sets:", err);
-          setError(err.message);
-          setLoading(false);
-        }
-      } else if (searchType === "all") {
-        // Filter all sets based on search query
-        const query = searchQuery.toLowerCase();
-        const filtered = sets.filter(set => 
-          set.name.toLowerCase().includes(query) || 
-          set.series.toLowerCase().includes(query)
-        );
-        setFilteredSets(filtered);
-      } else {
-        setFilteredSets(sets);
-      }
-    };
-
-    fetchSetsBySearch();
-  }, [searchQuery, searchType, sets]);
+  }, [searchQuery, searchType, sets, isDigital]);
 
   // Function to handle adding cards to inventory
   const handleAddToInventory = async (card) => {
@@ -424,15 +490,17 @@ function Explore() {
   };
 
   // Function to handle digital/physical toggle
-  const handleToggle = () => {
-    const newState = !isDigital;
+  const handleCardTypeChange = (type) => {
+    const newState = type === 'digital';
     setIsDigital(newState);
     // Save to localStorage
     localStorage.setItem('isDigital', JSON.stringify(newState));
     setSelectedSet(null);
     setCards([]);
     setSearchQuery("");
-    setTempSearchQuery("");
+    setSearchType("all");
+    setIsSearchTypeOpen(false);
+    setIsCardTypeOpen(false);
   };
 
   return (
@@ -444,24 +512,40 @@ function Explore() {
             {isDigital ? "Pokemon Pocket Sets" : "Pokemon TCG Sets"}
           </h1>
           <div className="flex gap-4 items-center">
-            {/* Toggle Switch */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Physical</span>
-              <button
-                onClick={handleToggle}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                  isDigital ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-600'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    isDigital ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-              <span className="text-sm text-gray-600 dark:text-gray-400">Digital</span>
-            </div>
             <form onSubmit={handleSearch} className="flex gap-2 w-full sm:w-auto">
+              {/* Card Type Dropdown */}
+              <div className="relative" ref={cardTypeRef}>
+                <button
+                  type="button"
+                  onClick={() => setIsCardTypeOpen(!isCardTypeOpen)}
+                  className="flex items-center justify-between gap-2 h-[42px] w-32 px-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-600 text-sm whitespace-nowrap"
+                >
+                  <span className="truncate">
+                    {isDigital ? "Digital" : "Physical"}
+                  </span>
+                  <FaChevronDown className="text-xs flex-shrink-0" />
+                </button>
+                
+                {isCardTypeOpen && (
+                  <div className="absolute top-full left-0 mt-1 w-32 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 z-10">
+                    <button
+                      type="button"
+                      onClick={() => handleCardTypeChange('physical')}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 rounded-t-lg"
+                    >
+                      Physical
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleCardTypeChange('digital')}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 rounded-b-lg"
+                    >
+                      Digital
+                    </button>
+                  </div>
+                )}
+              </div>
+
               {/* Search Type Dropdown */}
               <div className="relative" ref={searchTypeRef}>
                 <button
@@ -520,6 +604,7 @@ function Explore() {
                              searchType === "card" ? "card name" : "set name"}...`}
                   value={tempSearchQuery}
                   onChange={(e) => setTempSearchQuery(e.target.value)}
+                  onKeyPress={handleKeyPress}
                   className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -546,7 +631,7 @@ function Explore() {
           </ol>
         </div>
 
-        {loading && !isDigital ? (
+        {loading ? (
           <div className="flex justify-center items-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
           </div>
@@ -671,11 +756,11 @@ function Explore() {
                 </div>
               ))}
             </div>
-          ) : (
+          ) : searchQuery ? (
             <div className="text-center py-12">
               <p className="text-gray-600">No sets found matching "{searchQuery}"</p>
             </div>
-          )
+          ) : null
         )}
       </div>
     </div>
