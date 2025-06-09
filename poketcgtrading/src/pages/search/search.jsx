@@ -310,6 +310,7 @@ function Search() {
     const [error, setError] = useState(null);
     const [selectedCard, setSelectedCard] = useState(null);
     const [selectedUser, setSelectedUser] = useState(null);
+    const [hasSearched, setHasSearched] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -369,6 +370,7 @@ function Search() {
     const handleSubmit = (e) => {
         e.preventDefault();
         console.log("Form submitted"); // Debug log
+        setHasSearched(true);
         searchCards();
     };
 
@@ -544,7 +546,7 @@ function Search() {
                 )}
 
                 {/* No Results */}
-                {!loading && !error && searchQuery && searchResults.length === 0 && (
+                {!loading && !error && hasSearched && searchResults.length === 0 && (
                     <div className="text-center py-8">
                         <p className="text-gray-600 dark:text-gray-400">
                             No cards found matching "{searchQuery}"
