@@ -176,8 +176,15 @@ function Explore() {
             throw new Error("Invalid response format from API");
           }
 
-          setSets(data.data);
-          setFilteredSets(data.data);
+          // Sort sets by release date
+          const sortedSets = data.data.sort((a, b) => {
+            const dateA = new Date(a.releaseDate);
+            const dateB = new Date(b.releaseDate);
+            return dateA - dateB;
+          });
+
+          setSets(sortedSets);
+          setFilteredSets(sortedSets);
         }
         setLoading(false);
       } catch (err) {
