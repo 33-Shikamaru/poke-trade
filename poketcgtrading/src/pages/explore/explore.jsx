@@ -749,37 +749,107 @@ function Explore() {
               ))}
             </div>
           </div>
-        ) : (
-          filteredSets.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredSets.map((set) => (
-                <div
-                  key={set.id}
-                  className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300 cursor-pointer"
-                  onClick={() => handleSetClick(set)}
-                >
-                  <div className="aspect-w-16 aspect-h-9 bg-gray-100">
+        ) : searchQuery && (searchType === "card" || searchType === "all") ? (
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-300 mb-6">
+              Search Results for "{searchQuery}"
+            </h2>
+            {cards.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
+                {cards.map((card) => (
+                  <div
+                    key={card.id}
+                    className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 dark:bg-gray-600"
+                  >
                     <img
-                      src={set.images.logo}
-                      alt={`${set.name} logo`}
-                      className="w-full h-48 object-contain p-4"
+                      src={isDigital ? card.image : card.images.small}
+                      alt={card.name}
+                      className="w-full h-auto object-contain bg-gray-100 p-2 dark:bg-gray-200"
                     />
+                    <div className="flex flex-col justify-between items-start">
+                      <div className="flex items-center justify-between w-full px-3 min-h-[4rem]">
+                        <p className="font-semibold text-gray-600 dark:text-gray-300">{card.name}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">{card.rarity}</p>
+                      </div>
+                      <div className="flex flex-col justify-start items-start w-full">
+                        <p className="text-sm text-gray-500 px-3 dark:text-gray-300">
+                          {isDigital ? getDisplayName(card.pack) : card.set.name}
+                        </p>
+                      </div>
+                      <div className="flex flex-col gap-2 px-3 py-2 w-full">
+                        <div className="flex justify-center items-center gap-2 mb-2">
+                          <button
+                            className="border border-gray-200 px-2 py-0 rounded-md hover:bg-gray-100 flex items-center justify-center"
+                            onClick={() => updateQuantity(card.id, -1)}
+                          >
+                            -
+                          </button>
+                          <p className="text-gray-800 font-semibold p-0.5 text-center min-w-[2rem] dark:text-gray-300">
+                            {quantities[card.id] || 0}
+                          </p>
+                          <button
+                            className="border border-gray-200 px-2 py-0 rounded-md hover:bg-gray-100 flex items-center justify-center"
+                            onClick={() => updateQuantity(card.id, 1)}
+                          >
+                            +
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            onClick={() => handleAddToWishlist(card)}
+                            className="flex items-center justify-center gap-1 px-1 py-1.5 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors text-xs"
+                          >
+                            <MdStar className="text-base flex-shrink-0" />
+                            <span>Add to Wishlist</span>
+                          </button>
+                          <button
+                            onClick={() => handleAddToInventory(card)}
+                            className="flex items-center justify-center gap-1 px-1 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-xs"
+                          >
+                            <MdCollections className="text-base flex-shrink-0" />
+                            <span>Add to Inventory</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="p-4">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-300 truncate dark:text-gray-300">
-                      {set.name}
-                    </h2>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{set.series}</p>
-                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-gray-600">No cards found matching "{searchQuery}"</p>
+              </div>
+            )}
+          </div>
+        ) : filteredSets.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredSets.map((set) => (
+              <div
+                key={set.id}
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300 cursor-pointer"
+                onClick={() => handleSetClick(set)}
+              >
+                <div className="aspect-w-16 aspect-h-9 bg-gray-100">
+                  <img
+                    src={set.images.logo}
+                    alt={`${set.name} logo`}
+                    className="w-full h-48 object-contain p-4"
+                  />
                 </div>
-              ))}
-            </div>
-          ) : searchQuery ? (
-            <div className="text-center py-12">
-              <p className="text-gray-600">No sets found matching "{searchQuery}"</p>
-            </div>
-          ) : null
-        )}
+                <div className="p-4">
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-300 truncate dark:text-gray-300">
+                    {set.name}
+                  </h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{set.series}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : searchQuery ? (
+          <div className="text-center py-12">
+            <p className="text-gray-600">No sets found matching "{searchQuery}"</p>
+          </div>
+        ) : null}
       </div>
     </div>
   );
