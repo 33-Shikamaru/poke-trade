@@ -3,6 +3,28 @@ import { collection, getDocs, doc, getDoc, setDoc, updateDoc, arrayUnion, server
 import { FaSearch, FaTimes, FaExchangeAlt } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth, db } from '../../firebase';
+import Avatar1 from '../../assets/avatars/avatar1.png';
+import Avatar2 from '../../assets/avatars/avatar2.png';
+import Avatar3 from '../../assets/avatars/avatar3.png';
+import Avatar4 from '../../assets/avatars/avatar4.png';
+import Avatar5 from '../../assets/avatars/avatar5.png';
+import Avatar6 from '../../assets/avatars/avatar6.png';
+import Avatar7 from '../../assets/avatars/avatar7.png';
+import Avatar8 from '../../assets/avatars/avatar8.png';
+import Avatar9 from '../../assets/avatars/avatar9.png';
+
+const avatarOptions = [
+  { image: Avatar1, name: "avatar1" },
+  { image: Avatar2, name: "avatar2" },
+  { image: Avatar3, name: "avatar3" },
+  { image: Avatar4, name: "avatar4" },
+  { image: Avatar5, name: "avatar5" },
+  { image: Avatar6, name: "avatar6" },
+  { image: Avatar7, name: "avatar7" },
+  { image: Avatar8, name: "avatar8" },
+  { image: Avatar9, name: "avatar9" },
+  { image: null, name: "upload", isUpload: true }
+];
 
 function TradeOfferModal({ isOpen, onClose, targetCard, targetUser, onTrade }) {
     const [userInventory, setUserInventory] = useState([]);
@@ -460,9 +482,12 @@ function Search() {
                             <div key={result.userId} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                                 <div className="flex items-center mb-4">
                                     <img
-                                        src={result.userData.photoURL || `https://api.dicebear.com/6.x/initials/svg?seed=${result.userData.email}`}
+                                        src={result.userData.photoURL?.startsWith('avatar:') ? 
+                                            avatarOptions.find(avatar => avatar.name === result.userData.photoURL.split(':')[1])?.image || Avatar1 :
+                                            result.userData.photoURL || Avatar1
+                                        }
                                         alt="User profile"
-                                        className="w-12 h-12 rounded-full mr-4"
+                                        className="w-12 h-12 rounded-full mr-4 object-cover"
                                     />
                                     <div>
                                         <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
