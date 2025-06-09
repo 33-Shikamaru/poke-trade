@@ -104,16 +104,34 @@ function Explore() {
   // Handle search submission
   const handleSearch = (e) => {
     e.preventDefault();
-    setLoading(true);
-    setSearchQuery(tempSearchQuery);
+    if (tempSearchQuery.trim() === searchQuery.trim()) {
+      return; // Don't reload if the query hasn't changed
+    }
+    if (tempSearchQuery.trim()) {
+      setLoading(true);
+      setSearchQuery(tempSearchQuery);
+    } else {
+      setSearchQuery("");
+      setFilteredSets(sets);
+      setCards([]);
+    }
   };
 
   // Handle key press
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      setLoading(true);
-      setSearchQuery(tempSearchQuery);
+      if (tempSearchQuery.trim() === searchQuery.trim()) {
+        return; // Don't reload if the query hasn't changed
+      }
+      if (tempSearchQuery.trim()) {
+        setLoading(true);
+        setSearchQuery(tempSearchQuery);
+      } else {
+        setSearchQuery("");
+        setFilteredSets(sets);
+        setCards([]);
+      }
     }
   };
 
