@@ -374,7 +374,7 @@ function Trade() {
                     <div className={`w-32 h-44 rounded-lg overflow-hidden border-2 p-1 ${
                       isDigitalCard(trade.offeredCards[0]?.setName) 
                         ? 'border-blue-400 dark:border-blue-400' 
-                        : 'border-red-300 dark:border-red-400'
+                        : 'border-red-400 dark:border-red-400'
                     }`}>
                       <img 
                         src={trade.offeredCards[0]?.image || 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png'} 
@@ -388,7 +388,7 @@ function Trade() {
                     <p className={`text-xs font-medium mt-1 ${
                       isDigitalCard(trade.offeredCards[0]?.setName)
                         ? 'text-blue-400 dark:text-blue-400'
-                        : 'text-red-300 dark:text-red-400'
+                        : 'text-red-400 dark:text-red-400'
                     }`}>
                       {isDigitalCard(trade.offeredCards[0]?.setName) ? 'Digital Card' : 'Physical Card'}
                     </p>
