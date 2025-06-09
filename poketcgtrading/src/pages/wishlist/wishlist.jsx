@@ -449,10 +449,10 @@ function Wishlist() {
           <div className="flex gap-2 w-full sm:w-auto">
             {/* Dropdown Filters */}
             <div className='flex flex-col sm:flex-row justify-center items-center pb-10 gap-2 sm:gap-5 text-md'>
-              <div className='flex flex-row justify-center items-center gap-1 sm:gap-2 w-3/4 sm:w-auto'>
+              {/* <div className='flex flex-row justify-center items-center gap-1 sm:gap-2 w-3/4 sm:w-auto'>
                 <p className='w-full text-center sm:text-left'>Platform:</p>
-                <Dropdown typeFilter="platform" />
-              </div>
+                <Dropdown typeFilter="platform" /> */}
+              {/* </div> */}
               <div className='flex flex-row justify-center items-center gap-1 sm:gap-2 w-3/4 sm:w-auto'>
                 <p className='w-full text-center sm:text-left'>Sort By:</p>
                 <Dropdown typeFilter="sort" />
