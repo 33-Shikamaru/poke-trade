@@ -24,7 +24,7 @@ function Explore() {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [tempSearchQuery, setTempSearchQuery] = useState("");
-  const [searchType, setSearchType] = useState("all");
+  const [searchType, setSearchType] = useState("card");
   const [isSearchTypeOpen, setIsSearchTypeOpen] = useState(false);
   const [quantities, setQuantities] = useState({});
   const [isDigital, setIsDigital] = useState(() => {
@@ -516,7 +516,7 @@ function Explore() {
     setSelectedSet(null);
     setCards([]);
     setSearchQuery("");
-    setSearchType("all");
+    setSearchType("card");
     setIsSearchTypeOpen(false);
     setIsCardTypeOpen(false);
   };
@@ -572,8 +572,7 @@ function Explore() {
                   className="flex items-center justify-between gap-2 h-[42px] w-32 px-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-600 text-sm whitespace-nowrap"
                 >
                   <span className="truncate">
-                    {searchType === "all" ? "All" : 
-                     searchType === "card" ? "Card Name" : "Set Name"}
+                    {searchType === "card" ? "Card Name" : "Set Name"}
                   </span>
                   <FaChevronDown className="text-xs flex-shrink-0" />
                 </button>
@@ -583,20 +582,10 @@ function Explore() {
                     <button
                       type="button"
                       onClick={() => {
-                        setSearchType("all");
-                        setIsSearchTypeOpen(false);
-                      }}
-                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 rounded-t-lg"
-                    >
-                      All
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
                         setSearchType("card");
                         setIsSearchTypeOpen(false);
                       }}
-                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600"
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 rounded-t-lg"
                     >
                       Card Name
                     </button>
@@ -618,8 +607,7 @@ function Explore() {
               <div className="relative flex-1 sm:w-96">
                 <input
                   type="text"
-                  placeholder={`Search by ${searchType === "all" ? "card name or set" : 
-                             searchType === "card" ? "card name" : "set name"}...`}
+                  placeholder={`Search by ${searchType === "card" ? "card name" : "set name"}...`}
                   value={tempSearchQuery}
                   onChange={(e) => setTempSearchQuery(e.target.value)}
                   onKeyPress={handleKeyPress}
@@ -749,7 +737,7 @@ function Explore() {
               ))}
             </div>
           </div>
-        ) : searchQuery && (searchType === "card" || searchType === "all") ? (
+        ) : searchQuery && searchType === "card" ? (
           <div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-300 mb-6">
               Search Results for "{searchQuery}"
